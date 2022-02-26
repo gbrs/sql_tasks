@@ -1,2 +1,2 @@
 # sql_ex
-exercises from https://www.sql-ex.ru
+Here i will solve exercises from https://www.sql-ex.ru
