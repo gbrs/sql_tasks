@@ -1,0 +1,57 @@
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+3
+
+SELECT model, ram, screen
+FROM laptop
+WHERE price > 1000;
+
+_______________
+
+2
+
+SELECT DISTINCT maker
+FROM product
+WHERE type = 'Printer';
+
+_______________
+
+1
+
+SELECT
+  model,
+  speed,
+  hd
+FROM
+  pc
+WHERE
+  price < 500;
