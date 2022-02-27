@@ -14,18 +14,27 @@ _______________
 
 _______________
 
+6
 
-
-
-_______________
-
-
-
+SELECT DISTINCT prd.maker, lpt.speed
+FROM laptop lpt JOIN product prd ON lpt.model = prd.model
+WHERE lpt.hd >= 10
 
 _______________
 
+5
 
+SELECT model, speed, hd
+FROM PC
+WHERE (cd = '12x' or cd = '24x') and price < 600
 
+_______________
+
+4
+
+SELECT *
+FROM printer
+WHERE color = 'y';
 
 _______________
 
