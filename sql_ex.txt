@@ -9,8 +9,29 @@ _______________
 
 _______________
 
+7
 
+SELECT prd.model, lpt.price
+FROM
+    product prd
+    JOIN laptop lpt ON prd.model=lpt.model
+WHERE prd.maker='B'
 
+UNION
+
+SELECT prd.model, pc.price
+FROM
+    product prd
+    JOIN pc ON prd.model=pc.model
+WHERE prd.maker='B'
+
+UNION
+
+SELECT prd.model, prn.price
+FROM
+    product prd
+    JOIN printer prn ON prd.model=prn.model
+WHERE prd.maker='B'
 
 _______________
 
