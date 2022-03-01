@@ -9,6 +9,35 @@ _______________
 
 _______________
 
+
+
+
+_______________
+
+
+
+
+_______________
+
+
+
+
+_______________
+
+8
+
+SELECT DISTINCT maker
+FROM product
+WHERE type = 'pc'
+
+EXCEPT
+
+SELECT DISTINCT maker
+FROM product
+WHERE type = 'laptop'
+
+_______________
+
 7
 
 SELECT prd.model, lpt.price
