@@ -9,8 +9,11 @@ _______________
 
 _______________
 
+13
 
-
+SELECT AVG(pc.speed)
+FROM pc JOIN product prd ON pc.model = prd.model
+WHERE prd.maker = 'A'
 
 _______________
 
