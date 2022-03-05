@@ -4,8 +4,12 @@
 
 _______________
 
+15
 
-
+SELECT hd
+FROM pc
+GROUP BY hd
+HAVING COUNT(code) > 1
 
 _______________
 
