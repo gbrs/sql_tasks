@@ -2,6 +2,40 @@
 
 
 
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+17
+
+SELECT DISTINCT prd.type, lpt.model, lpt.speed
+FROM laptop lpt JOIN product prd ON lpt.model = prd.model
+WHERE speed < (SELECT MIN(speed) FROM pc)
+
 _______________
 
 15
