@@ -26,7 +26,24 @@ _______________
 
 _______________
 
+18
 
+SELECT
+  DISTINCT prd.maker,
+  prn.price
+FROM
+  printer prn
+  JOIN product prd ON prn.model = prd.model
+WHERE
+  color = 'y'
+  AND prn.price = (
+    SELECT
+      MIN(price)
+    FROM
+      printer
+    WHERE
+      color = 'y'
+  )
 
 _______________
 
