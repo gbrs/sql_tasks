@@ -18,7 +18,25 @@ _______________
 
 _______________
 
+23
 
+SELECT
+    DISTINCT maker
+FROM
+    product prd
+    JOIN pc ON prd.model = pc.model
+WHERE
+    pc.speed >= 750
+
+INTERSECT
+
+SELECT
+    DISTINCT maker
+FROM
+    product prd
+    JOIN laptop lpt ON prd.model = lpt.model
+WHERE
+    lpt.speed >= 750
 
 _______________
 
