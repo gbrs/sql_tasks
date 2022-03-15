@@ -14,7 +14,44 @@ _______________
 
 _______________
 
+24
 
+SELECT model
+FROM printer
+WHERE price = (SELECT MAX(mx)
+              FROM (
+              SELECT MAX(price) mx FROM pc
+              UNION ALL
+              SELECT MAX(price) FROM laptop
+              UNION ALL
+              SELECT MAX(price) FROM printer
+              ) x)
+
+UNION
+
+SELECT model
+FROM pc
+WHERE price = (SELECT MAX(mx)
+              FROM (
+              SELECT MAX(price) mx FROM pc
+              UNION ALL
+              SELECT MAX(price) FROM laptop
+              UNION ALL
+              SELECT MAX(price) FROM printer
+              ) x)
+
+UNION
+
+SELECT model
+FROM laptop
+WHERE price = (SELECT MAX(mx)
+              FROM (
+              SELECT MAX(price) mx FROM pc
+              UNION ALL
+              SELECT MAX(price) FROM laptop
+              UNION ALL
+              SELECT MAX(price) FROM printer
+              ) x)
 
 _______________
 
