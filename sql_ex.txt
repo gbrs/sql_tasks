@@ -10,7 +10,20 @@ _______________
 
 _______________
 
+25
 
+SELECT DISTINCT prd.maker
+FROM pc JOIN product prd ON pc.model = prd.model
+WHERE
+    pc.ram = (SELECT MIN(ram)
+                  FROM pc)
+    AND pc.speed = (SELECT MAX(speed)
+                    FROM pc
+                    WHERE ram = (SELECT MIN(ram)
+                                 FROM pc))
+    AND prd.maker IN (SELECT DISTINCT maker
+                      FROM product
+                      WHERE type = 'Printer')
 
 _______________
 
