@@ -1,12 +1,39 @@
 
 
 
+_______________
 
 
 
 _______________
 
 
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+26
+SELECT SUM(tbl.sm) / SUM(tbl.cnt)
+FROM (SELECT SUM(lpt.price) sm, COUNT(*) as cnt
+      FROM laptop lpt JOIN product prd ON lpt.model = prd.model
+      WHERE prd.maker = 'A'
+
+      UNION
+
+      SELECT SUM(pc.price), COUNT(*)
+      FROM pc JOIN product prd ON pc.model = prd.model
+      WHERE prd.maker = 'A') AS tbl
 
 _______________
 

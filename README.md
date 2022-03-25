@@ -7,8 +7,6 @@ Here i will solve exercises from https://www.sql-ex.ru
 не прочел форумы по решенным задачам 1-18
 
 16?
-25
-26
 27
 71
 30
