@@ -19,7 +19,11 @@ _______________
 
 _______________
 
-
+27
+SELECT prd.maker, AVG(pc.hd)
+FROM product prd JOIN pc ON prd.model = pc.model
+WHERE prd.maker IN (SELECT DISTINCT maker FROM product WHERE type = 'printer')
+GROUP BY prd.maker
 
 _______________
 
