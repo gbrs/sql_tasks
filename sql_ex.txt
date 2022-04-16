@@ -177,6 +177,14 @@ WHERE prd.maker = 'A'
 
 _______________
 
+12
+
+SELECT AVG(speed)
+FROM laptop
+WHERE price > 1000
+
+_______________
+
 11
 
 SELECT AVG(speed)
