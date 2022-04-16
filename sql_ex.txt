@@ -200,6 +200,14 @@ WHERE price = (SELECT MAX(price) FROM printer)
 
 _______________
 
+9
+
+SELECT DISTINCT maker
+FROM product prd JOIN pc ON prd.model = pc.model
+WHERE pc.speed >= 450
+
+_______________
+
 8
 
 SELECT DISTINCT maker
