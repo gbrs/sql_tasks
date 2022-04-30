@@ -169,6 +169,14 @@ HAVING COUNT(code) > 1
 
 _______________
 
+14
+
+SELECT shp.class, shp.name, Cls.country
+FROM Classes cls JOIN Ships shp ON cls.class = shp.class
+WHERE cls.numGuns > 9
+
+_______________
+
 13
 
 SELECT AVG(pc.speed)
