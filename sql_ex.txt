@@ -131,6 +131,14 @@ HAVING COUNT(DISTINCT model) > 2
 
 _______________
 
+19
+
+SELECT prd.maker, AVG(lpt.screen) 'avg screen'
+FROM product prd INNER JOIN laptop lpt ON prd.model = lpt.model
+GROUP BY prd.maker
+
+_______________
+
 18
 
 SELECT
