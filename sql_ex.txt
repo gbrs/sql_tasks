@@ -121,6 +121,14 @@ WHERE
 
 _______________
 
+21
+
+SELECT prd.maker, MAX(pc.price)
+FROM pc INNER JOIN product prd ON pc.model = prd.model
+GROUP BY prd.maker
+
+_______________
+
 20
 
 SELECT maker, COUNT(DISTINCT model)
