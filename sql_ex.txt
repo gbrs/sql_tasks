@@ -121,6 +121,15 @@ WHERE
 
 _______________
 
+22
+
+SELECT speed, AVG(price)
+FROM pc
+GROUP BY speed
+HAVING speed > 600
+
+_______________
+
 21
 
 SELECT prd.maker, MAX(pc.price)

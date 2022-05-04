@@ -4,7 +4,7 @@ Here i will solve exercises from https://www.sql-ex.ru
 
 [учебник](http://www.sql-tutorial.ru/ru/book_appendix_2_task_list.html)
 
-сделать 22
+сделать 31
 
 не прочел форумы по решенным задачам 1-18
 
