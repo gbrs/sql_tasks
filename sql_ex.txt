@@ -11,7 +11,10 @@ _______________
 
 _______________
 
-
+33
+SELECT ship
+FROM Outcomes out INNER JOIN Battles btl ON out.battle = btl.name
+WHERE btl.name = 'North Atlantic' AND out.result = 'sunk'
 
 _______________
 
