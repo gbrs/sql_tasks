@@ -3,7 +3,10 @@
 
 _______________
 
-
+42
+SELECT ship, battle
+FROM Outcomes
+WHERE result = 'sunk'
 
 _______________
 
