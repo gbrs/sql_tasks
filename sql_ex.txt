@@ -15,7 +15,16 @@ _______________
 
 _______________
 
+45
+SELECT shp.name
+FROM Ships shp
+WHERE shp.name LIKE '% % %'
 
+UNION
+
+SELECT out.ship
+FROM Outcomes out
+WHERE out.ship LIKE '% % %'
 
 _______________
 
