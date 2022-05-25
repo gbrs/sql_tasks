@@ -7,6 +7,38 @@ _______________
 
 _______________
 
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+44
+SELECT shp.name
+FROM Ships shp
+WHERE shp.name LIKE 'R%'
+
+UNION
+
+SELECT out.ship
+FROM Outcomes out
+WHERE out.ship LIKE 'R%'
+
+_______________
+
+42
+SELECT ship, battle
+FROM Outcomes
+WHERE result = 'sunk'
+
+_______________
+
 38
 SELECT country
 FROM Classes
