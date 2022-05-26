@@ -3,10 +3,6 @@
 
 _______________
 
-42
-SELECT ship, battle
-FROM Outcomes
-WHERE result = 'sunk'
 
 _______________
 
@@ -14,7 +10,27 @@ _______________
 
 _______________
 
+49
+SELECT
+  shp.name
+FROM
+  Ships shp
+  JOIN Classes cls ON shp.class = cls.class
+WHERE
+  cls.bore = 16
 
+UNION
+
+
+SELECT
+  out.ship
+FROM
+  Outcomes out
+  JOIN Classes cls ON out.ship = cls.class
+  -- Где-то украл. Не понял почему так:
+  -- название корабля же может не совпадать с названием класса?
+WHERE
+  cls.bore = 16
 
 _______________
 
