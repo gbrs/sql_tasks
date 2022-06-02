@@ -6,7 +6,13 @@ _______________
 
 _______________
 
-
+50
+SELECT DISTINCT out.battle
+FROM Outcomes out
+WHERE out.ship IN (SELECT shp.name
+                   FROM Ships shp
+                   WHERE shp.class = 'Kongo'
+                   )
 
 _______________
 
