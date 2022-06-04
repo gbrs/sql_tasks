@@ -23,11 +23,47 @@ _______________
 
 _______________
 
+89
+/*откуда-то скатал решение.
+Пытался просто через запятую min и max от подзапросов положить в IN - не позволяет.
+Приходится через юнион.
+*/
 
+SELECT
+  maker,
+  COUNT(model)
+FROM
+  product
+GROUP BY
+  maker
+HAVING
+  COUNT(model) IN (
+    SELECT MAX(cnt)
+    FROM(
+      SELECT
+        COUNT(model) cnt
+      FROM
+        product
+      GROUP BY
+        maker
+    ) AS a
+
+    UNION
+
+    SELECT MIN(cnt)
+    FROM(
+      SELECT
+        COUNT(model) cnt
+      FROM
+        product
+      GROUP BY
+        maker
+    ) AS b
+  )
 
 _______________
 
-62
+62+
 SELECT SUM(inc) - (SELECT SUM(out)
                    FROM Outcome_o
                    WHERE date < '2001-04-15'
@@ -37,7 +73,7 @@ WHERE date < '2001-04-15'
 
 _______________
 
-50
+50+
 SELECT DISTINCT out.battle
 FROM Outcomes out
 WHERE out.ship IN (SELECT shp.name
