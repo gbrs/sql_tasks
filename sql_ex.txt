@@ -167,6 +167,15 @@ WHERE bore >= 16
 
 _______________
 
+28
+SELECT COUNT(*)
+FROM (SELECT maker
+FROM product
+GROUP BY maker
+HAVING COUNT(*) = 1) tmp
+
+_______________
+
 27
 SELECT prd.maker, AVG(pc.hd)
 FROM product prd JOIN pc ON prd.model = pc.model

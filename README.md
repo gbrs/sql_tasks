@@ -7,7 +7,7 @@ Here i will solve exercises from https://www.sql-ex.ru
 
 https://codebeautify.org/sqlformatter
 
-сделать ?
+сделать 29, 30
 
 не прочел форумы почти по всем нерешенным задачам !!!!
 
