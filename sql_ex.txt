@@ -292,7 +292,7 @@ GROUP BY prd.maker
 
 _______________
 
-20
+20+
 
 SELECT maker, COUNT(DISTINCT model)
 FROM product
@@ -302,7 +302,7 @@ HAVING COUNT(DISTINCT model) > 2
 
 _______________
 
-19
+19+
 
 SELECT prd.maker, AVG(lpt.screen) 'avg screen'
 FROM product prd INNER JOIN laptop lpt ON prd.model = lpt.model
@@ -310,7 +310,7 @@ GROUP BY prd.maker
 
 _______________
 
-18
+18+
 
 SELECT
   DISTINCT prd.maker,
@@ -331,7 +331,7 @@ WHERE
 
 _______________
 
-17
+17+
 
 SELECT DISTINCT prd.type, lpt.model, lpt.speed
 FROM laptop lpt JOIN product prd ON lpt.model = prd.model
@@ -339,7 +339,7 @@ WHERE speed < (SELECT MIN(speed) FROM pc)
 
 _______________
 
-15
+15+
 
 SELECT hd
 FROM pc
@@ -348,7 +348,7 @@ HAVING COUNT(code) > 1
 
 _______________
 
-14
+14+
 
 SELECT shp.class, shp.name, Cls.country
 FROM Classes cls JOIN Ships shp ON cls.class = shp.class
@@ -356,7 +356,7 @@ WHERE cls.numGuns > 9
 
 _______________
 
-13
+13+
 
 SELECT AVG(pc.speed)
 FROM pc JOIN product prd ON pc.model = prd.model
@@ -364,7 +364,7 @@ WHERE prd.maker = 'A'
 
 _______________
 
-12
+12+
 
 SELECT AVG(speed)
 FROM laptop
@@ -372,7 +372,7 @@ WHERE price > 1000
 
 _______________
 
-11
+11+
 
 SELECT AVG(speed)
 FROM pc
