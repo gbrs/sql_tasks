@@ -254,7 +254,7 @@ WHERE price = (SELECT MAX(mx)
 
 _______________
 
-23
+23+
 
 SELECT
     DISTINCT maker
@@ -276,7 +276,8 @@ WHERE
 
 _______________
 
-22
+22+
+
 SELECT speed, AVG(price)
 FROM pc
 GROUP BY speed
@@ -284,7 +285,7 @@ HAVING speed > 600
 
 _______________
 
-21
+21+
 
 SELECT prd.maker, MAX(pc.price)
 FROM pc INNER JOIN product prd ON pc.model = prd.model
