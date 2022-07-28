@@ -214,7 +214,7 @@ WHERE
 
 _______________
 
-24
+24+
 SELECT model
 FROM printer
 WHERE price = (SELECT MAX(mx)
@@ -251,6 +251,18 @@ WHERE price = (SELECT MAX(mx)
               UNION ALL
               SELECT MAX(price) FROM printer
               ) x)
+
+_______________
+
+24+
+WITH temp AS(
+SELECT model, price FROM Pc WHERE price = (SELECT MAX(price) FROM Pc)
+UNION
+SELECT model,price FROM Laptop WHERE price = (SELECT MAX(price) FROM Laptop)
+UNION
+SELECT model, price FROM Printer WHERE price = (SELECT MAX(price) FROM Printer)
+)
+SELECT model FROM temp WHERE price = (SELECT MAX(price) FROM temp)
 
 _______________
 
