@@ -184,7 +184,7 @@ GROUP BY prd.maker
 
 _______________
 
-26
+26+
 SELECT SUM(tbl.sm) / SUM(tbl.cnt)
 FROM (SELECT SUM(lpt.price) sm, COUNT(*) as cnt
       FROM laptop lpt JOIN product prd ON lpt.model = prd.model
@@ -198,7 +198,7 @@ FROM (SELECT SUM(lpt.price) sm, COUNT(*) as cnt
 
 _______________
 
-25
+25+
 SELECT DISTINCT prd.maker
 FROM pc JOIN product prd ON pc.model = prd.model
 WHERE
