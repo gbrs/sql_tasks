@@ -167,16 +167,30 @@ WHERE bore >= 16
 
 _______________
 
-28
+28+
 SELECT COUNT(*)
 FROM (SELECT maker
-FROM product
+      FROM product
+      GROUP BY maker
+      HAVING COUNT(*) = 1) tmp
+
+'''
+простой запрос с групбаем и COUNT(maker) не верен,
+поскольку считает количество производителей в каждой группе,
+а не сколько таких производителей
+'''
+
+'''
+# чей-то вариант
+SELECT COUNT(maker) ct FROM product
+WHERE maker in (SELECT maker FROM product
 GROUP BY maker
-HAVING COUNT(*) = 1) tmp
+HAVING COUNT(model) = 1)
+'''
 
 _______________
 
-27
+27+
 SELECT prd.maker, AVG(pc.hd)
 FROM product prd JOIN pc ON prd.model = pc.model
 WHERE prd.maker IN (SELECT DISTINCT maker FROM product WHERE type = 'printer')
