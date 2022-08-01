@@ -140,7 +140,7 @@ WHERE result = 'sunk'
 
 _______________
 
-38
+38+
 SELECT country
 FROM Classes
 WHERE type = 'bb'
@@ -153,14 +153,15 @@ WHERE type = 'bc'
 
 _______________
 
-33
+33+
 SELECT ship
 FROM Outcomes out INNER JOIN Battles btl ON out.battle = btl.name
+-- зачем джойнил? В Outcomes вся инфа есть
 WHERE btl.name = 'North Atlantic' AND out.result = 'sunk'
 
 _______________
 
-31
+31+
 SELECT class, country
 FROM Classes
 WHERE bore >= 16
