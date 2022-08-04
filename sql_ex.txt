@@ -38,27 +38,27 @@ GROUP BY
   maker
 HAVING
   COUNT(model) IN (
-    SELECT MAX(cnt)
-    FROM(
-      SELECT
-        COUNT(model) cnt
-      FROM
-        product
-      GROUP BY
-        maker
-    ) AS a
+        SELECT MAX(cnt)
+        FROM(
+          SELECT
+            COUNT(model) cnt
+          FROM
+            product
+          GROUP BY
+            maker
+        ) AS a
 
-    UNION
+        UNION
 
-    SELECT MIN(cnt)
-    FROM(
-      SELECT
-        COUNT(model) cnt
-      FROM
-        product
-      GROUP BY
-        maker
-    ) AS b
+        SELECT MIN(cnt)
+        FROM(
+          SELECT
+            COUNT(model) cnt
+          FROM
+            product
+          GROUP BY
+            maker
+        ) AS b
   )
 
 _______________
@@ -83,7 +83,7 @@ WHERE out.ship IN (SELECT shp.name
 
 _______________
 
-49
+49+
 SELECT
   shp.name
 FROM
@@ -107,7 +107,7 @@ WHERE
 
 _______________
 
-45
+45+
 SELECT shp.name
 FROM Ships shp
 WHERE shp.name LIKE '% % %'
@@ -120,7 +120,7 @@ WHERE out.ship LIKE '% % %'
 
 _______________
 
-44
+44+
 SELECT shp.name
 FROM Ships shp
 WHERE shp.name LIKE 'R%'
@@ -133,7 +133,7 @@ WHERE out.ship LIKE 'R%'
 
 _______________
 
-42
+42+
 SELECT ship, battle
 FROM Outcomes
 WHERE result = 'sunk'
@@ -184,9 +184,10 @@ FROM (SELECT maker
 '''
 # чей-то вариант
 SELECT COUNT(maker) ct FROM product
-WHERE maker in (SELECT maker FROM product
-GROUP BY maker
-HAVING COUNT(model) = 1)
+WHERE maker IN (
+        SELECT maker FROM product
+        GROUP BY maker
+        HAVING COUNT(model) = 1)
 '''
 
 _______________
