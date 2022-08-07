@@ -19,11 +19,32 @@ _______________
 
 _______________
 
+89+
+-- как предыдущее, но с CTE
 
+WITH counter AS (
+    SELECT
+      COUNT(model) cnt
+    FROM
+      product
+    GROUP BY
+      maker)
 
+SELECT
+  maker,
+  COUNT(model)
+FROM
+  product
+GROUP BY
+  maker
+HAVING
+  COUNT(model) IN (
+      (SELECT MAX(cnt) FROM counter),
+      (SELECT MIN(cnt) FROM counter))
+-- если положить результаты подзапросов в кавычки, то можно и без union
 _______________
 
-89
+89+
 /*откуда-то скатал решение.
 Пытался просто через запятую min и max от подзапросов положить в IN - не позволяет.
 Приходится через юнион.
@@ -93,7 +114,6 @@ WHERE
   cls.bore = 16
 
 UNION
-
 
 SELECT
   out.ship
