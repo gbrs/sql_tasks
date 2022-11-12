@@ -1,0 +1,125 @@
+Задания с https://sql-academy.org
+
+
+1
+SELECT name FROM Passenger
+
+
+2
+SELECT name
+FROM Company
+
+
+3
+SELECT *
+FROM trip
+WHERE town_from = 'Moscow'
+
+
+4
+SELECT name
+FROM Passenger
+WHERE name LIKE '%man'
+
+
+5
+SELECT COUNT(*) AS count
+FROM Trip
+GROUP BY plane
+HAVING plane = 'TU-134'
+
+
+6
+SELECT DISTINCT name
+FROM Trip
+  INNER JOIN Company ON Trip.company = Company.id
+WHERE plane = 'Boeing'
+
+
+7
+SELECT DISTINCT plane
+FROM Trip
+WHERE town_to = 'Moscow'
+
+
+8
+SELECT town_to, TIMEDIFF(time_in, time_out) flight_time
+FROM Trip
+WHERE town_from = 'Paris'
+
+
+9
+SELECT DISTINCT name
+FROM trip
+  INNER JOIN Company ON Trip.company = Company.id
+WHERE town_from = 'Vladivostok'
+
+
+10
+SELECT *
+FROM Trip
+WHERE TIME(time_out) BETWEEN '10:00:00' AND '14:00:00'
+
+
+12
+SELECT Trip.id trip,
+  COUNT(*) count
+FROM Trip
+  INNER JOIN Pass_in_trip ON Pass_in_trip.trip = Trip.id
+GROUP BY Trip.id
+
+
+14
+SELECT town_to
+FROM Trip
+  INNER JOIN Pass_in_trip ON Pass_in_trip.trip = Trip.id
+  INNER JOIN Passenger ON Passenger.id = Pass_in_trip.passenger
+WHERE name = 'Bruce Willis'
+
+
+19
+SELECT DISTINCT status
+FROM Payments
+  INNER JOIN FamilyMembers ON Payments.family_member = FamilyMembers.member_id
+  INNER JOIN Goods ON Goods.good_id = Payments.good
+WHERE good_name = 'potato'
+
+
+22
+SELECT member_name
+FROM FamilyMembers
+WHERE status = 'mother'
+
+
+34
+SELECT COUNT(*) count
+FROM Class
+WHERE name LIKE '10%'
+
+
+36
+SELECT *
+FROM Student
+WHERE address LIKE 'ul. Pushkina%'
+
+
+39
+SELECT COUNT(*) count
+FROM Class
+INNER JOIN Student_in_class ON Student_in_class.class = Class.id
+WHERE name = '10 B'
+
+
+41
+SELECT start_pair
+FROM Timepair
+WHERE id = 4
+
+
+
+
+
+
+
+
+
