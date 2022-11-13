@@ -1,0 +1,53 @@
+Задания с https://learndb.ru/courses
+
+
+1.1
+SELECT 'Hello, world!'
+
+
+1.2
+SELECT 'One', 'Two', 'Three'
+
+
+1.3
+SELECT *
+FROM city
+
+
+1.4
+SELECT first_name, middle_name, last_name
+FROM employee
+
+
+1.5
+select 1 as one, 2 as TWO, 3 as "Three"
+
+
+1.6
+SELECT now() as server_date,
+       name,
+       upper(name) as name_upper
+  FROM city
+
+
+1.7
+SELECT first_name || ' ' || last_name as full_name
+  FROM employee
+
+
+1.8
+SELECT product_id,
+       price,
+       price/2 AS price_sale
+  FROM product_price
+
+
+1.9
+SELECT DISTINCT first_name
+  FROM employee
+
+
+
+
+
+
