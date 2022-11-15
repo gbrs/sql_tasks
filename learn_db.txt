@@ -50,4 +50,41 @@ SELECT DISTINCT first_name
 
 
 
+2.1
+SELECT *
+FROM category
+WHERE parent_category_id = 2
+
+
+2.2
+SELECT *
+  FROM store_address
+ WHERE city_id = 6
+   AND address = 'ул. Чкалова, 42'
+
+
+2.3
+SELECT *
+  FROM store_address
+ WHERE opening_hours IS NOT NULL
+   AND phone IS NOT NULL
+
+
+2.4
+SELECT *
+  FROM employee
+ WHERE (first_name = 'Виктор') OR (middle_name = 'Иванович')
+
+
+2.5
+SELECT *
+  FROM employee
+ WHERE NOT (first_name = 'Виктор' OR middle_name = 'Иванович' OR middle_name IS NULL)
+
+
+2.6
+
+
+
+
 
