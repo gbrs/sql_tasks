@@ -83,6 +83,33 @@ SELECT *
 
 
 2.6
+SELECT *
+  FROM employee
+ WHERE (rank_id = 'CEO'
+    OR rank_id = 'CHIEF'
+    OR rank_id = 'GENERAL_MANAGER')
+   AND first_name = 'Виктор'
+
+
+2.7
+SELECT *
+  FROM store_address
+ WHERE store_id = 100
+   AND city_id != 1
+
+
+2.8
+SELECT *
+  FROM product_price
+ WHERE price BETWEEN 5000 AND 15000
+    OR price BETWEEN 30000 AND 40000
+
+
+2.9
+SELECT *
+  FROM employee
+ WHERE rank_id NOT IN ('SELLER', 'MANAGER')
+
 
 
 
