@@ -150,3 +150,15 @@ OFFSET 2
 
 
 
+3.1
+SELECT *
+  FROM product
+  JOIN category
+    ON category.category_id = product.category_id
+
+
+
+
+
+
+
