@@ -111,6 +111,41 @@ SELECT *
  WHERE rank_id NOT IN ('SELLER', 'MANAGER')
 
 
+2.10
+SELECT first_name, last_name
+  FROM employee
+ WHERE last_name LIKE 'М%в'
+
+
+2.11
+SELECT *
+  FROM city
+ ORDER BY name
+
+
+2.12
+SELECT employee_id,
+       store_id,
+       rank_id,
+       last_name
+  FROM employee
+ ORDER BY store_id, rank_id, last_name DESC
+
+
+2.13
+SELECT *
+  FROM product_price
+ ORDER BY price DESC
+ LIMIT 5
+
+
+2.14
+SELECT *
+  FROM product_price
+ ORDER BY price DESC
+ LIMIT 5
+OFFSET 2
+
 
 
 
