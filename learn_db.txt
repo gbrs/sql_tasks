@@ -157,6 +157,36 @@ SELECT *
     ON category.category_id = product.category_id
 
 
+3.2
+SELECT p.purchase_id,
+       p.purchase_date,
+       p.store_id,
+       pi.product_id,
+       pi.count * pi.price as total_price
+  FROM purchase p
+  JOIN purchase_item pi
+    ON pi.purchase_id = p.purchase_id
+ ORDER BY p.store_id, p.purchase_date DESC
+
+
+3.3
+SELECT p.purchase_id,
+       p.purchase_date,
+       pi.product_id,
+       pi.count,
+       pi.price
+  FROM purchase p
+  JOIN purchase_item pi
+    ON pi.purchase_id = p.purchase_id
+ WHERE pi.count >= 5
+ ORDER BY p.store_id, p.purchase_date DESC
+
+
+3.4
+
+
+
+
 
 
 
