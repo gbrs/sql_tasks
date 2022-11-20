@@ -182,8 +182,62 @@ SELECT p.purchase_id,
  ORDER BY p.store_id, p.purchase_date DESC
 
 
-3.4
+копировал решения из раздела Решение. Там мой запрос переформатировался в красивый вид.
+Теперь только я понял, что Решение - эо вариант сайта! :).
+На простых задачах они один в один совпадали с моим решением и я не сообразил :)
 
+
+3.4
+SELECT
+  e.last_name,
+  e.first_name,
+  e.store_id store_id_employee,
+  r.store_id store_id_rank,
+  r.rank_id,
+  r.name rank_name
+FROM
+  Employee e
+  INNER JOIN Rank r
+    ON
+      r.store_id != e.store_id
+      AND r.rank_id = e.rank_id
+      OR
+      r.store_id = e.store_id
+
+ORDER BY
+  e.last_name,
+  e.first_name,
+  store_id_rank,
+  r.rank_id
+
+
+3.5
+SELECT
+  DISTINCT
+  e1.store_id,
+  e1.rank_id,
+  e2.rank_id rank_id_other
+FROM employee e1
+JOIN employee e2
+  ON e1.store_id = e2.store_id
+  AND e1.rank_id != e2.rank_id
+ORDER BY
+  store_id,
+  rank_id,
+  rank_id_other
+
+
+3.6
+SELECT
+  c.name category_name,
+  p.name product_name
+FROM
+  Category c
+  LEFT JOIN Product p
+  ON c.category_id = p.category_id
+ORDER BY
+  category_name,
+  product_name
 
 
 
