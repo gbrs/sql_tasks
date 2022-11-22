@@ -183,7 +183,7 @@ SELECT p.purchase_id,
 
 
 копировал решения из раздела Решение. Там мой запрос переформатировался в красивый вид.
-Теперь только я понял, что Решение - эо вариант сайта! :).
+Теперь только я понял, что Решение - это вариант сайта! :).
 На простых задачах они один в один совпадали с моим решением и я не сообразил :)
 
 
@@ -240,7 +240,16 @@ ORDER BY
   product_name
 
 
-
+3.7
+SELECT
+  time_offset,
+  name city_name
+FROM
+  City c
+  RIGHT JOIN Timezone tz ON c.timezone_id = tz.timezone_id
+ORDER BY
+  time_offset,
+  city_name
 
 
 
