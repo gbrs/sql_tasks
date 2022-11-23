@@ -252,6 +252,42 @@ ORDER BY
   city_name
 
 
+3.8
+SELECT
+  DISTINCT
+  pp.product_id product_id_price,
+  pi.product_id product_id_purchase
+FROM
+  product_price pp
+  FULL JOIN purchase_item pi
+  ON pp.product_id = pi.product_id
+WHERE
+  pp.product_id is NULL
+  OR pi.product_id is NULL
 
 
+3.9
+SELECT
+  c.name city_name,
+  c.timezone_id timezone_id_city,
+  tz.timezone_id timezone_id_timezone,
+  tz.time_offset
+FROM
+  city c,
+  timezone tz
+ORDER BY
+  city_name,
+  timezone_id_timezone
 
+
+3.10
+SELECT
+    c.name category_name,
+    p.name product_name,
+    p.description
+FROM
+    category c,
+    product p
+WHERE
+    p.category_id = c.category_id
+    AND c.category_id = 6
