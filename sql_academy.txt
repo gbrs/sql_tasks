@@ -61,6 +61,14 @@ FROM Trip
 WHERE TIME(time_out) BETWEEN '10:00:00' AND '14:00:00'
 
 
+11
+SELECT name
+FROM Passenger
+WHERE LENGTH(name) = (
+    SELECT MAX(LENGTH(name))
+    FROM Passenger)
+
+
 12
 SELECT Trip.id trip,
   COUNT(*) count
@@ -75,6 +83,17 @@ FROM Trip
   INNER JOIN Pass_in_trip ON Pass_in_trip.trip = Trip.id
   INNER JOIN Passenger ON Passenger.id = Pass_in_trip.passenger
 WHERE name = 'Bruce Willis'
+
+
+15
+SELECT Trip.time_in
+FROM
+    Trip
+    INNER JOIN Pass_in_trip ON Trip.id = Pass_in_trip.trip
+    INNER JOIN Passenger ON Pass_in_trip.passenger = Passenger.id
+WHERE
+    Passenger.name = 'Steve Martin'
+    AND Trip.town_to = 'London'
 
 
 19
@@ -103,6 +122,12 @@ FROM Student
 WHERE address LIKE 'ul. Pushkina%'
 
 
+38
+SELECT COUNT(*) count
+FROM Student
+WHERE first_name = 'Anna'
+
+
 39
 SELECT COUNT(*) count
 FROM Class
@@ -116,10 +141,15 @@ FROM Timepair
 WHERE id = 4
 
 
+53
+UPDATE FamilyMembers
+SET member_name = 'Andie Anthony'
+WHERE member_name = 'Andie Quincey'
 
 
-
-
+56
+DELETE FROM Trip
+WHERE town_from = 'Moscow'
 
 
 
