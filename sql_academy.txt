@@ -77,6 +77,13 @@ FROM Trip
 GROUP BY Trip.id
 
 
+13
+SELECT DISTINCT p1.name
+FROM Passenger p1
+JOIN Passenger p2 ON p1.name = p2.name
+AND p1.id != p2.id
+
+
 14
 SELECT town_to
 FROM Trip
@@ -94,6 +101,34 @@ FROM
 WHERE
     Passenger.name = 'Steve Martin'
     AND Trip.town_to = 'London'
+
+
+16
+SELECT name, COUNT(*) count
+FROM Pass_in_trip pit
+JOIN Passenger psg ON pit.passenger = psg.id
+GROUP BY psg.id
+ORDER BY count DESC, name
+
+
+17
+SELECT
+    member_name,
+    status,
+    SUM(amount * unit_price) costs
+FROM
+    FamilyMembers
+    INNER JOIN Payments ON Payments.family_member = FamilyMembers.member_id
+WHERE
+    YEAR(date) = '2005'
+GROUP BY
+    FamilyMembers.member_id
+
+
+18
+SELECT member_name
+FROM FamilyMembers
+WHERE birthday = (SELECT MIN(birthday) FROM FamilyMembers)
 
 
 19
