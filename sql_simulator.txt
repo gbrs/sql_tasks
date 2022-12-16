@@ -2,7 +2,7 @@ https://lab.karpov.courses/learning/152/
 КУРС «СИМУЛЯТОР SQL» от Карпов коурсес
 
 
-1.1
+3.1
 select
   name,
   price,
@@ -13,7 +13,7 @@ order by
   name
 
 
-1.2
+3.2
 select
   courier_id,
   order_id,
@@ -27,7 +27,7 @@ order by
   time desc
 
 
-1.3
+3.3
 select
   order_id,
   creation_time
@@ -37,7 +37,7 @@ limit
   50
 
 
-1.4
+3.4
 select
   name,
   price
@@ -49,7 +49,7 @@ limit
   5
 
 
-1.5
+3.5
 select
   name product_name,
   price product_price
@@ -61,14 +61,14 @@ limit
   5
 
 
-1.6
+3.6
 select
   price::VARCHAR
 from
   products
 
 
-1.7
+3.7
 select
   courier_id,
   date_part('year', birth_date) birth_year
@@ -78,7 +78,7 @@ order by
   birth_year
 
 
-1.8
+3.8
 select
   courier_id,
   coalesce(
@@ -91,7 +91,7 @@ order by
   birth_year desc
 
 
-1.9
+3.9
 select
   concat('Заказ № ', order_id, ' создан ', creation_time::date) AS order_info
 from
@@ -100,7 +100,7 @@ limit
   200
 
 
-1.10
+3.10
 select
   name,
   price,
@@ -111,7 +111,7 @@ order by
   new_price desc
 
 
-1.11
+3.11
 select
   name,
   price,
@@ -122,7 +122,7 @@ order by
   new_price desc
 
 
-1.12
+3.12
 select
   name,
   price,
@@ -136,7 +136,7 @@ order by
   new_price desc
 
 
-1.13
+3.13
 select
   product_id,
   name,
@@ -148,8 +148,154 @@ from
 order by
   price_before_tax desc
 
+------------------
+
+4.1
+select
+  product_id,
+  name,
+  price
+from
+  products
+where
+  price <= 100
+order by
+  price desc
 
 
+4.2
+select product_id, name
+from products
+where name LIKE '%чай%'
+
+
+4.3
+select product_id, name
+from products
+where name LIKE 'с%' and name not LIKE '% %'
+
+
+4.4
+select
+  product_id,
+  name,
+  price,
+  '25%' discount,
+  0.75 * price price_discounted
+from
+  products
+where
+  name LIKE '%чай%'
+  and name not LIKE '%чай%гриб%'
+  and price > 60
+
+
+4.5
+select
+  user_id,
+  order_id,
+  action,
+  time
+from
+  user_actions
+where
+  user_id in (170, 200, 230)
+  and time between '2022-08-25' and '2022-09-05'
+order by
+  time desc
+
+
+4.6
+select courier_id, birth_date, sex
+from couriers
+where birth_date is null
+order by courier_id
+
+
+4.7
+select user_id, birth_date
+from users
+where birth_date is not null and sex = 'male'
+order by birth_date desc
+limit 50
+
+
+4.8
+select order_id, time
+from courier_actions
+where courier_id = 100 and action = 'deliver_order'
+order by time desc
+limit 10
+
+
+4.9
+select
+  order_id
+from
+  user_actions
+where
+  DATE_PART('year', time) = '2022'
+  and DATE_PART('month', time) = '08'
+  and action = 'create_order'
+
+
+4.10
+select
+  courier_id
+from
+  couriers
+where
+  DATE_PART('year', birth_date) between 1990 and 1995
+
+
+4.11
+select user_id, order_id, action, time
+from user_actions
+where time between '2022-08-25 12:00:00' and '2022-08-25 16:00:00'
+order by time desc
+
+
+4.12
+select
+    product_id,
+    name,
+    price,
+    round(
+        case
+            when name in (
+                'сахар', 'сухарики', 'сушки', 'семечки',
+                'масло льняное', 'виноград', 'масло оливковое',
+                'арбуз', 'батон', 'йогурт', 'сливки', 'гречка',
+                'овсянка', 'макароны', 'баранина', 'апельсины',
+                'бублики', 'хлеб', 'горох', 'сметана', 'рыба копченая',
+                'мука', 'шпроты', 'сосиски', 'свинина', 'рис',
+                'масло кунжутное', 'сгущенка', 'ананас', 'говядина',
+                'соль', 'рыба вяленая', 'масло подсолнечное', 'яблоки',
+                'груши', 'лепешка', 'молоко', 'курица', 'лаваш', 'вафли', 'мандарины')
+            then price / 11
+            else price / 6
+        end
+    , 2) as tax,
+  price - round(
+                case
+                    when name in (
+                        'сахар', 'сухарики', 'сушки', 'семечки',
+                        'масло льняное', 'виноград', 'масло оливковое',
+                        'арбуз', 'батон', 'йогурт', 'сливки', 'гречка',
+                        'овсянка', 'макароны', 'баранина', 'апельсины',
+                        'бублики', 'хлеб', 'горох', 'сметана', 'рыба копченая',
+                        'мука', 'шпроты', 'сосиски', 'свинина', 'рис',
+                        'масло кунжутное', 'сгущенка', 'ананас', 'говядина',
+                        'соль', 'рыба вяленая', 'масло подсолнечное', 'яблоки',
+                        'груши', 'лепешка', 'молоко', 'курица', 'лаваш', 'вафли', 'мандарины')
+                    then price / 11
+                    else price / 6
+                end
+            , 2) as price_before_tax
+from
+  products
+order by
+  price_before_tax desc
 
 
 
