@@ -296,7 +296,47 @@ from
   products
 order by
   price_before_tax desc
+___________________________________
+
+5.1
+select
+  DISTINCT user_id
+from
+  user_actions
+order by
+  user_id
 
 
+5.2
+select
+  DISTINCT courier_id, order_id
+from
+  courier_actions
+order by
+  courier_id, order_id
 
+
+5.3
+select
+  max(price) max_price, min(price) min_price
+from
+  products
+
+
+5.4
+select
+  COUNT(DISTINCT user_id) unique_users,
+  COUNT(DISTINCT order_id) unique_orders,
+  ROUND(COUNT(DISTINCT order_id)::DECIMAL / COUNT(DISTINCT user_id), 2) orders_per_user
+from
+  user_actions
+
+
+5.5
+select count(courier_id) couriers_count
+from couriers
+where sex = 'female'
+
+
+5.6
 
