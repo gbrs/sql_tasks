@@ -348,6 +348,67 @@ WHERE
 
 
 5.7
+SELECT
+  AVG(price) avg_price
+FROM
+  products
+WHERE
+  (name LIKE '%чай%'
+  OR name LIKE '%кофе%')
+  AND name NOT LIKE '%чайный гриб%'
+  AND name NOT LIKE '%иван-чай%'
+
+
+5.8
+SELECT
+  MIN(AGE(birth_date))::VARCHAR min_age
+FROM
+  couriers
+WHERE
+  sex = 'male'
+
+
+5.9
+SELECT
+  MAX(AGE(birth_date)) - MIN(AGE(birth_date)) age_diff
+FROM
+  users
+WHERE
+  sex = 'male'
+
+
+5.10
+SELECT
+  SUM(price) order_price
+FROM
+  products
+WHERE
+  name = 'сухарики'
+  OR name = 'чипсы'
+  OR name = 'энергетический напиток'
+
+
+5.11
+SELECT
+  SUM(
+    CASE
+      WHEN name = 'сухарики' THEN price * 3
+      WHEN name = 'чипсы' THEN price * 2
+      WHEN name = 'энергетический напиток' THEN price * 1
+    END
+  ) order_price
+FROM
+  products
+
+
+5.12
+SELECT
+  COUNT(DISTINCT user_id) - COUNT(DISTINCT user_id) FILTER (WHERE action = 'cancel_order') users_count
+FROM
+  user_actions
+
+
+
 
 
 
