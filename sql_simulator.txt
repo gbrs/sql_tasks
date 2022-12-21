@@ -407,8 +407,123 @@ SELECT
 FROM
   user_actions
 
+------------------------------------------
+
+6.1
+SELECT sex, COUNT(*) couriers_count
+FROM couriers
+GROUP BY sex
+ORDER BY couriers_count
+
+
+6.2
+SELECT sex, MAX(DATE_PART('year', AGE(birth_date))) max_age
+FROM users
+GROUP BY sex
+ORDER BY max_age
+
+
+6.3
+SELECT DATE_PART('year', AGE(birth_date)) age, COUNT(*) users_count
+FROM users
+GROUP BY age
+ORDER BY age
+
+
+6.4
+SELECT DATE_PART('year', AGE(birth_date)) age, sex, COUNT(*) users_count
+FROM users
+WHERE birth_date IS NOT NULL
+GROUP BY age, sex
+ORDER BY age
+
+
+6.5
+SELECT DATE_TRUNC('month', time) AS month, action, COUNT(*) orders_count
+FROM user_actions
+GROUP BY month, action
+ORDER BY month, action
+
+
+6.6
+SELECT array_length(product_ids, 1) order_size, COUNT(*) orders_count
+FROM orders
+GROUP BY order_size
+ORDER BY order_size
+
+
+6.7
+SELECT array_length(product_ids, 1) order_size, COUNT(*) orders_count
+FROM orders
+GROUP BY order_size
+HAVING COUNT(*) > 5000
+ORDER BY order_size
+
+
+6.8
+SELECT courier_id, COUNT(order_id) delivered_orders
+FROM courier_actions
+WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
+GROUP BY courier_id
+ORDER BY delivered_orders DESC
+LIMIT 5
+
+
+6.9
+SELECT courier_id, COUNT(order_id) delivered_orders
+FROM courier_actions
+WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
+GROUP BY courier_id
+HAVING COUNT(order_id) = 1
+ORDER BY courier_id
+
+
+6.10
+SELECT user_id
+FROM user_actions
+GROUP BY user_id
+HAVING MAX(DATE_PART('month', time)) = 8
+ORDER BY user_id
+
+
+6.11
+SELECT
+  user_id,
+  ROUND(
+      COUNT(*) FILTER (WHERE action = 'cancel_order')
+          / CAST(COUNT(*) AS DECIMAL)
+  , 2) AS cancel_rate
+FROM
+  user_actions
+GROUP BY
+  user_id
+ORDER BY
+  cancel_rate DESC
+
+
+6.12
+SELECT
+  CASE
+    WHEN DATE_PART('YEAR', AGE(birth_date)) BETWEEN 19 AND 24 THEN '19-24'
+    WHEN DATE_PART('YEAR', AGE(birth_date)) BETWEEN 25 AND 29 THEN '25-29'
+    WHEN DATE_PART('YEAR', AGE(birth_date)) BETWEEN 30 AND 35 THEN '30-35'
+    WHEN DATE_PART('YEAR', AGE(birth_date)) BETWEEN 36 AND 41 THEN '36-41'
+  END AS group_age,
+  COUNT(user_id) users_count
+FROM
+  users
+WHERE
+  DATE_PART('YEAR', AGE(birth_date)) BETWEEN 19 AND 41
+GROUP BY
+  group_age
+ORDER BY
+  group_age
 
 
 
 
 
+
+SELECT CASE WHEN name LIKE '%чай%' THEN 777 ELSE 555 END  AS XXX, SUM(price)
+FROM products
+GROUP BY XXX
