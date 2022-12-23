@@ -491,7 +491,7 @@ SELECT
   user_id,
   ROUND(
       COUNT(*) FILTER (WHERE action = 'cancel_order')
-          / CAST(COUNT(*) AS DECIMAL)
+          / CAST(COUNT(DISTINCT order_id) AS DECIMAL)
   , 2) AS cancel_rate
 FROM
   user_actions
