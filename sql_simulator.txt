@@ -520,10 +520,173 @@ ORDER BY
   group_age
 
 
+------------------------------------
+
+7.1
+SELECT
+  ROUND(AVG(cnt), 2) orders_avg
+FROM
+  (
+    SELECT
+      COUNT(*) cnt
+    FROM
+      user_actions
+    WHERE
+      action = 'create_order'
+    GROUP BY
+      user_id
+  ) counts
 
 
+7.2
+WITH counts AS (
+  SELECT
+    COUNT(*) cnt
+  FROM
+    user_actions
+  WHERE
+    action = 'create_order'
+  GROUP BY
+    user_id
+)
+SELECT
+  ROUND(AVG(cnt), 2) orders_avg
+FROM
+  counts
 
 
-SELECT CASE WHEN name LIKE '%чай%' THEN 777 ELSE 555 END  AS XXX, SUM(price)
+7.3
+SELECT product_id, name, price
 FROM products
-GROUP BY XXX
+WHERE price != (SELECT MIN(price) FROM products)
+ORDER BY price DESC
+
+
+7.4
+SELECT product_id, name, price
+FROM products
+WHERE price >= (SELECT AVG(price) FROM products) + 20
+ORDER BY price DESC
+
+
+7.5
+WITH latest AS (
+  SELECT MAX(time) mx FROM user_actions
+)
+
+SELECT COUNT (DISTINCT user_id) users_count
+FROM user_actions
+WHERE time BETWEEN
+                (SELECT mx FROM latest) - INTERVAL '1 week'
+                AND (SELECT mx FROM latest)
+
+
+7.6
+WITH maxi AS (
+  SELECT MAX(time) that_day FROM courier_actions
+)
+
+SELECT MIN(AGE((SELECT that_day FROM maxi)::DATE, birth_date))::VARCHAR AS min_age
+FROM couriers
+WHERE sex = 'male'
+
+
+7.7
+WITH canceled_orders AS (
+  SELECT order_id FROM user_actions WHERE action = 'cancel_order'
+)
+
+SELECT order_id
+FROM user_actions
+WHERE order_id NOT IN (SELECT * FROM canceled_orders)
+ORDER BY order_id
+
+
+7.8
+WITH counters AS (
+  SELECT
+    COUNT(*) cntr
+  FROM
+    user_actions
+  WHERE
+    action = 'create_order'
+  GROUP BY
+    user_id
+),
+average AS (
+  SELECT
+    ROUND(AVG(cntr), 2) aver
+  FROM
+    counters
+)
+SELECT
+  user_id,
+  COUNT(*) orders_count,
+  (SELECT * FROM average) orders_avg,
+  COUNT(*) - (SELECT * FROM average) orders_diff
+FROM
+  user_actions
+WHERE
+  action = 'create_order'
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+
+
+7.9
+WITH last_order_id AS (
+  SELECT order_id
+  FROM courier_actions
+  WHERE action = 'deliver_order'
+  ORDER BY time DESC
+  LIMIT 100
+)
+
+SELECT order_id, product_ids
+FROM orders
+WHERE order_id IN (SELECT order_id FROM last_order_id)
+ORDER BY order_id
+
+
+7.10
+WITH actions AS (
+  SELECT courier_id, count(*) cnt
+  FROM courier_actions
+  WHERE time >= '2022-09-01'
+  GROUP BY courier_id
+)
+
+SELECT courier_id, birth_date, sex
+FROM couriers
+WHERE courier_id IN (SELECT courier_id FROM actions WHERE cnt > 50)
+ORDER BY courier_id
+
+
+7.11
+WITH average_price AS (
+  SELECT
+    ROUND(AVG(price), 2)
+  FROM
+    products
+)
+SELECT
+  product_id,
+  name,
+  price,
+  CASE
+    WHEN price >= (SELECT * FROM average_price) + 50
+    THEN 0.85 * price
+    WHEN price <= (SELECT * FROM average_price) - 50
+    THEN 0.9 * price
+    ELSE price
+  END AS new_price
+FROM
+  products
+ORDER BY
+  price DESC
+
+
+
+
+
