@@ -687,6 +687,65 @@ ORDER BY
   price DESC
 
 
+7.12
+SELECT creation_time, order_id, product_ids, UNNEST(product_ids) product_id
+FROM orders
+LIMIT 100
+
+
+7.13
+SELECT UNNEST(product_ids) product_id, COUNT(*) times_purchased
+FROM orders
+GROUP BY product_id
+ORDER BY times_purchased DESC
+LIMIT 10
+
+
+7.14
+WITH
+  goods AS (
+    SELECT order_id, product_ids, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+
+  expensive AS (
+    SELECT product_id
+    FROM products
+    ORDER BY price DESC
+    LIMIT 5
+  )
+
+SELECT DISTINCT order_id, product_ids
+FROM goods
+WHERE product_id IN (SELECT product_id  FROM expensive)
+ORDER BY order_id
+
+
+7.15
+WITH
+  last_times AS (
+    SELECT MAX(time) last_time
+    FROM user_actions
+  ),
+
+  ages AS (
+    SELECT
+      user_id,
+      DATE_PART('YEAR', AGE((SELECT last_time FROM last_times), birth_date)) AS age
+    FROM users
+  ),
+
+  average_age AS (
+    SELECT ROUND(AVG(age)) avg_age
+    FROM ages
+  )
+
+SELECT
+  user_id,
+  COALESCE (age, (SELECT avg_age FROM average_age)) age
+FROM ages
+ORDER BY user_id
+
 
 
 
