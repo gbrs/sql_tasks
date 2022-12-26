@@ -746,6 +746,70 @@ SELECT
 FROM ages
 ORDER BY user_id
 
+--------------------------
+
+8.1
+SELECT
+  ua.user_id user_id_left,
+  u.user_id user_id_right,
+  order_id,
+  time,
+  action,
+  sex,
+  birth_date
+FROM
+  user_actions ua
+  INNER JOIN users u USING(user_id)
+ORDER BY
+  user_id_left
 
 
+8.2
+SELECT
+  COUNT(DISTINCT users.user_id) users_count
+FROM
+  user_actions
+  INNER JOIN users USING(user_id)
+
+
+8.3
+SELECT
+  ua.user_id user_id_left,
+  u.user_id user_id_right,
+  order_id,
+  time,
+  action,
+  sex,
+  birth_date
+FROM
+  user_actions ua
+  LEFT JOIN users u USING(user_id)
+ORDER BY
+  user_id_left
+
+
+8.4
+SELECT
+  COUNT(DISTINCT ua.user_id) users_count
+FROM
+  user_actions ua
+  LEFT JOIN users u USING(user_id)
+
+
+8.5
+SELECT
+  ua.user_id user_id_left,
+  u.user_id user_id_right,
+  order_id,
+  time,
+  action,
+  sex,
+  birth_date
+FROM
+  user_actions ua
+  LEFT JOIN users u USING(user_id)
+WHERE
+  u.user_id IS NOT NULL
+ORDER BY
+  user_id_left
 
