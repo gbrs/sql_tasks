@@ -813,3 +813,141 @@ WHERE
 ORDER BY
   user_id_left
 
+
+8.6
+SELECT
+    u.birth_date users_birth_date,
+    u.users_count,
+    c.birth_date couriers_birth_date,
+    c.couriers_count
+
+FROM
+    (SELECT birth_date, COUNT(user_id) AS users_count
+    FROM users
+    WHERE birth_date IS NOT NULL
+    GROUP BY birth_date) AS u
+
+    FULL JOIN
+
+    (SELECT birth_date, COUNT(courier_id) AS couriers_count
+    FROM couriers
+    WHERE birth_date IS NOT NULL
+    GROUP BY birth_date) AS c
+
+    USING (birth_date)
+
+ORDER BY
+    users_birth_date, couriers_birth_date
+
+
+8.7
+SELECT
+    COUNT(*) dates_count
+FROM
+    (SELECT birth_date
+    FROM users
+    WHERE birth_date IS NOT NULL
+
+    UNION
+
+    SELECT birth_date
+    FROM couriers
+    WHERE birth_date IS NOT NULL
+    )bd
+
+
+8.8
+SELECT *
+FROM
+    (SELECT user_id
+    FROM users
+    LIMIT 100) u
+
+    CROSS JOIN
+
+    (SELECT name
+    FROM products) p
+ORDER BY
+    user_id,
+    name
+
+
+8.9
+SELECT
+  ua.user_id,
+  ord.order_id,
+  ord.product_ids
+FROM
+  user_actions ua
+  INNER JOIN
+  orders ord
+  USING (order_id)
+ORDER BY
+  ua.user_id,
+  ord.order_id
+
+
+8.10
+WITH not_canceled_orders AS(
+  SELECT order_id
+  FROM user_actions
+  WHERE action = 'create_order'
+
+  EXCEPT
+
+  SELECT order_id
+  FROM user_actions
+  WHERE action = 'cancel_order'
+)
+
+SELECT
+  ua.user_id,
+  ord.order_id,
+  ord.product_ids
+FROM
+  user_actions ua
+  INNER JOIN
+  orders ord
+  ON ua.order_id = ord.order_id
+WHERE
+  ord.order_id IN (SELECT order_id FROM not_canceled_orders)
+ORDER BY
+  ua.user_id,
+  ord.order_id
+
+
+8.11
+WITH not_canceled_orders AS(
+  SELECT order_id
+  FROM user_actions
+  WHERE action = 'create_order'
+
+  EXCEPT
+
+  SELECT order_id
+  FROM user_actions
+  WHERE action = 'cancel_order'
+)
+
+SELECT
+  user_id,
+  ROUND(AVG(array_length(product_ids, 1)), 2) avg_order_size
+FROM
+  (SELECT
+    ua.user_id,
+    ord.order_id,
+    ord.product_ids
+  FROM
+    user_actions ua
+    INNER JOIN
+    orders ord
+    ON ua.order_id = ord.order_id
+  WHERE
+    ord.order_id IN (SELECT order_id FROM not_canceled_orders)) delivered_products
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+
+
+
