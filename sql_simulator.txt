@@ -950,4 +950,110 @@ ORDER BY
   user_id
 
 
+8.12
+SELECT
+  order_id, splited_orders.product_id, price
+FROM
+  (SELECT order_id, UNNEST(product_ids) product_id
+  FROM orders) splited_orders
+  JOIN products USING(product_id)
+ORDER BY
+  order_id, product_id
+
+
+8.13
+WITH
+  splited_orders AS (
+    SELECT order_id, UNNEST(product_ids) product_id
+    FROM orders
+    LIMIT 5
+  ),
+  priced_orders AS (
+    SELECT
+      order_id, t1.product_id, price
+    FROM
+      (SELECT * FROM splited_orders) t1
+      JOIN products USING(product_id)
+  )
+
+SELECT
+  order_id, SUM(price) order_price
+FROM
+  priced_orders
+GROUP BY
+  order_id
+ORDER BY
+  order_id
+
+
+8.14
+WITH
+  splited_orders AS (
+    SELECT order_id, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+  priced_orders AS (
+    SELECT
+      order_id, t1.product_id, price
+    FROM
+      (SELECT * FROM splited_orders) t1
+      JOIN products USING(product_id)
+  ),
+  order_sums AS (
+    SELECT
+      order_id,
+      SUM(price) order_value
+    FROM
+      priced_orders
+    GROUP BY
+      order_id
+  ),
+
+  not_canceled_orders AS (
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'create_order'
+    EXCEPT
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'cancel_order'
+  ),
+  delivered_products AS(
+    SELECT
+      ua.user_id,
+      ord.order_id,
+      ord.product_ids
+    FROM
+      user_actions ua
+      INNER JOIN orders ord USING (order_id)
+    WHERE ord.order_id IN (SELECT order_id FROM not_canceled_orders)
+  ),
+  order_sizes AS (
+    SELECT
+      user_id,
+      order_id,
+      array_length(product_ids, 1) order_size
+    FROM
+      delivered_products
+  )
+
+SELECT
+  user_id,
+  COUNT(order_id) orders_count,
+  ROUND(AVG(order_size), 2) avg_order_size,
+  SUM(order_value) sum_order_value,
+  ROUND(AVG(order_value), 2) avg_order_value,
+  MIN(order_value) min_order_value,
+  MAX(order_value) max_order_value
+FROM
+  order_sums
+  JOIN order_sizes USING (order_id)
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+
+
+
+
 
