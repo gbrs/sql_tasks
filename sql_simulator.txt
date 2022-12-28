@@ -1156,3 +1156,55 @@ FROM orders
   JOIN courier_actions USING (order_id)
 LIMIT
   10
+
+
+8.20
+WITH
+  not_canceled_orders AS (
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'create_order'
+    EXCEPT
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'cancel_order'
+  ),
+  splited_orders AS (
+    SELECT DISTINCT order_id, UNNEST(product_ids) product_id
+    FROM orders
+    WHERE order_id IN (SELECT * FROM not_canceled_orders)
+  ),
+  named_orders AS (
+    SELECT order_id, name
+    FROM splited_orders
+      JOIN products USING (product_id)
+  ),
+  pairs AS (
+    SELECT
+      no.order_id,
+      array[no.name, no2.name] pair
+    FROM
+      named_orders no
+      CROSS JOIN named_orders no2
+    WHERE no.order_id = no2.order_id
+          AND no.name < no2.name
+  )
+
+
+SELECT
+  pair,
+  COUNT(pair) count_pair
+FROM
+  pairs
+GROUP BY
+  pair
+ORDER BY
+  count_pair DESC,
+  pair
+
+
+
+
+
+
+
