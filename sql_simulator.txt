@@ -1103,5 +1103,56 @@ ORDER BY time - creation_time DESC
 LIMIT 10
 
 
+8.18
+WITH
+  splited_orders AS (
+    SELECT order_id, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+  named_orders AS (
+    SELECT order_id, name
+    FROM splited_orders
+    JOIN products USING (product_id)
+  )
+
+SELECT order_id, ARRAY_AGG(name) product_names
+FROM named_orders
+GROUP BY order_id
+ORDER BY order_id
 
 
+8.19
+WITH
+  max_orders AS (
+    SELECT *
+    FROM orders
+    WHERE ARRAY_LENGTH(product_ids, 1) = (SELECT MAX(ARRAY_LENGTH(product_ids, 1)) FROM orders)
+  ),
+  last_times AS (
+    SELECT MAX(time)
+    FROM user_actions
+  )
+
+SELECT
+  DISTINCT
+  max_orders.order_id,
+  users.user_id,
+  DATE_PART('YEAR', AGE((SELECT * FROM last_times), users.birth_date)) user_age,
+  couriers.courier_id,
+  DATE_PART('YEAR', AGE((SELECT * FROM last_times), couriers.birth_date)) courier_age
+FROM max_orders
+  JOIN user_actions USING (order_id)
+  JOIN courier_actions USING (order_id)
+  JOIN users USING (user_id)
+  JOIN couriers USING (courier_id)
+ORDER BY
+  order_id
+
+
+SELECT
+  *
+FROM orders
+  JOIN user_actions USING (order_id)
+  JOIN courier_actions USING (order_id)
+LIMIT
+  10
