@@ -1202,9 +1202,35 @@ ORDER BY
   count_pair DESC,
   pair
 
+------------------
+
+9.1
+SELECT
+  product_id,
+  name,
+  price,
+  ROW_NUMBER() OVER (ORDER BY price DESC) product_number,
+  RANK() OVER (ORDER BY price DESC) product_rank,
+  DENSE_RANK() OVER (ORDER BY price DESC) product_dense_rank
+FROM
+  products
 
 
+9.2
+SELECT
+  product_id,
+  name,
+  price,
+  MAX(price) OVER() max_price,
+  ROUND(price / MAX(price) OVER(), 2) share_of_max
+FROM
+  products
+ORDER BY
+  price DESC,
+  product_id
 
+
+9.3
 
 
 
