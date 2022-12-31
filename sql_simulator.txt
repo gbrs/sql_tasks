@@ -1231,6 +1231,103 @@ ORDER BY
 
 
 9.3
+SELECT
+  product_id,
+  name,
+  price,
+  MAX(price) OVER(ORDER BY price DESC) max_price,
+  MIN(price) OVER(ORDER BY price DESC) min_price
+FROM
+  products
+ORDER BY
+  price DESC,
+  product_id
+
+
+9.4
+WITH
+  order_counts AS (
+    SELECT
+      creation_time::DATE date,
+      COUNT(*) orders_count
+    FROM
+      orders
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+    GROUP BY
+      1
+  )
+
+SELECT
+  date,
+  orders_count,
+  SUM(orders_count) OVER(ORDER BY date) orders_cum_count
+FROM
+  order_counts
+
+
+9.5
+WITH
+  not_canceled_orders AS (
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'create_order'
+    EXCEPT
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'cancel_order'
+  )
+
+SELECT
+  user_id,
+  order_id,
+  time,
+  ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY time) order_number
+FROM
+  user_actions
+WHERE
+  order_id IN (SELECT * FROM not_canceled_orders)
+
+
+9.6
+SELECT
+  user_id,
+  order_id,
+  time,
+  ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY time) order_number,
+  LAG(time, 1) OVER(PARTITION BY user_id ORDER BY time) time_lag,
+  time - LAG(time, 1) OVER(PARTITION BY user_id ORDER BY time) time_diff
+FROM
+  user_actions
+WHERE
+  order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+
+
+9.7
+WITH intervals AS (
+  SELECT
+    user_id,
+    time - LAG(time, 1) OVER(PARTITION BY user_id ORDER BY time) time_between_orders
+  FROM
+    user_actions
+  WHERE
+    order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+  )
+
+SELECT
+  user_id,
+  ROUND(EXTRACT(epoch FROM AVG(time_between_orders)) / 3600) hours_between_orders
+FROM
+  intervals
+WHERE
+  time_between_orders IS NOT NULL
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+
+
+9.8
 
 
 
