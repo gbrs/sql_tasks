@@ -1328,6 +1328,114 @@ ORDER BY
 
 
 9.8
+WITH
+  order_counts AS (
+    SELECT
+      creation_time::DATE date,
+      COUNT(*) orders_count
+    FROM
+      orders
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+    GROUP BY
+      1
+  )
+
+SELECT
+  date,
+  orders_count,
+  ROUND(
+      AVG(orders_count)
+      OVER(ORDER BY date ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING),
+      2) moving_avg
+FROM
+  order_counts
+
+
+9.9
+SELECT
+  courier_id,
+  COUNT(order_id) delivered_orders,
+  ROUND(AVG(COUNT(order_id)) OVER (), 2) avg_delivered_orders,
+  CASE
+    WHEN COUNT(order_id) > ROUND(AVG(COUNT(order_id)) OVER (), 2) THEN 1
+    ELSE 0
+    END AS is_above_avg
+FROM
+  courier_actions
+WHERE
+  time BETWEEN '2022-09-01' AND '2022-10-01'
+  AND action = 'deliver_order'
+GROUP BY
+  courier_id
+ORDER BY
+  courier_id
+
+
+9.10
+SELECT
+  product_id,
+  name,
+  price,
+  ROUND(AVG(price) OVER(), 2) avg_price,
+  ROUND(AVG(price)
+      FILTER(WHERE price != (SELECT * FROM(SELECT MAX(price) FROM products) tmp))
+      OVER(), 2)
+      AS avg_price_filtered
+FROM
+  products
+ORDER BY
+  price DESC,
+  product_id
+
+
+9.11
+WITH counter AS (
+  SELECT
+    user_id, order_id, action, time,
+    COUNT(order_id) FILTER (WHERE action = 'create_order')
+         OVER (PARTITION BY user_id ORDER BY time) created_orders,
+    COUNT(order_id) FILTER (WHERE action = 'cancel_order')
+         OVER (PARTITION BY user_id ORDER BY time) canceled_orders
+  FROM
+    user_actions
+)
+
+
+SELECT
+  user_id, order_id, action, time, created_orders, canceled_orders,
+  ROUND(canceled_orders::DECIMAL / created_orders, 2) cancel_rate
+FROM
+  counter
+ORDER BY
+  user_id, order_id, action, time
+
+
+9.12
+WITH counter AS (
+  SELECT
+    courier_id,
+    COUNT(*) orders_count
+  FROM
+    courier_actions
+  WHERE
+    action = 'deliver_order'
+  GROUP BY
+    courier_id
+
+)
+
+SELECT
+  courier_id,
+  orders_count,
+  ROW_NUMBER() OVER(ORDER BY orders_count DESC, courier_id) courier_rank
+FROM
+  counter
+LIMIT
+  (SELECT ROUND(COUNT(DISTINCT courier_id) * 0.1) FROM courier_actions)
+
+
+9.13
 
 
 
