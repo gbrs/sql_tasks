@@ -1436,6 +1436,74 @@ LIMIT
 
 
 9.13
+WITH
+  lt(last_time) AS (
+    SELECT MAX(time) FROM courier_actions
+  ),
+  days_together AS (
+    SELECT
+      courier_id,
+      DATE_PART('DAY', last_time - MIN(time) OVER(PARTITION BY courier_id)) AS days_employed,
+      action
+    FROM
+      courier_actions, lt
+  )
+
+SELECT
+  courier_id,
+  MAX(days_employed) days_employed,
+  COUNT(action) delivered_orders
+FROM
+  days_together
+WHERE
+  days_employed >= 10
+  AND action = 'deliver_order'
+GROUP BY
+  courier_id
+ORDER BY
+  days_employed DESC,
+  courier_id
+
+
+9.14
+WITH
+  splited_orders AS (
+    SELECT
+      order_id,
+      creation_time,
+      UNNEST(product_ids) product_id
+    FROM orders
+    WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+  ),
+  valued_orders AS (
+    SELECT
+      order_id,
+      MAX(creation_time::DATE) order_day,
+      MAX(creation_time) creation_time,
+      SUM(price) order_price
+    FROM
+      splited_orders
+      INNER JOIN products USING (product_id)
+    GROUP BY
+      order_id
+  )
+
+SELECT
+  order_id,
+  creation_time,
+  order_price,
+  SUM(order_price) OVER (PARTITION BY order_day) daily_revenue,
+  ROUND(100.0 * order_price / SUM(order_price) OVER (PARTITION BY order_day), 3)  percentage_of_daily_revenue
+FROM
+  valued_orders
+ORDER BY
+  order_day DESC,
+  percentage_of_daily_revenue DESC,
+  order_id
+
+
+
+
 
 
 
