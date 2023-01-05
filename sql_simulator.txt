@@ -1502,6 +1502,58 @@ ORDER BY
   order_id
 
 
+9.15
+WITH
+  splited_orders AS (
+    SELECT
+      order_id,
+      creation_time,
+      UNNEST(product_ids) product_id
+    FROM orders
+    WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+  ),
+  valued_orders AS (
+    SELECT
+      order_id,
+      MAX(creation_time::DATE) AS date,
+      SUM(price) order_price
+    FROM
+      splited_orders
+      INNER JOIN products USING (product_id)
+    GROUP BY
+      order_id
+  ),
+  valued_days AS (
+    SELECT
+      date,
+      ROUND(SUM(order_price), 1) daily_revenue
+    FROM
+      valued_orders
+    GROUP BY
+      date
+  )
+
+SELECT
+  date,
+  daily_revenue,
+  COALESCE(
+      ROUND(
+          daily_revenue - LAG(daily_revenue) OVER (ORDER BY date)
+          , 1)
+      , 0
+  ) AS revenue_growth_abs,
+  COALESCE(
+      ROUND(
+           100.0 * (daily_revenue - LAG(daily_revenue) OVER (ORDER BY date))
+               / LAG(daily_revenue) OVER (ORDER BY date)
+           , 1)
+      , 0
+  ) AS revenue_growth_percentage
+FROM
+  valued_days
+ORDER BY
+  date
+
 
 
 
