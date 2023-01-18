@@ -145,6 +145,59 @@ FROM FamilyMembers
 WHERE status = 'mother'
 
 
+23-1
+WITH max_delicacies_price AS (
+  SELECT
+    MAX(unit_price)
+  FROM
+    Goods
+    INNER JOIN Payments p ON good = good_id
+    INNER JOIN GoodTypes gt ON type = good_type_id
+  WHERE
+    good_type_name = 'delicacies'
+)
+
+SELECT
+  good_name, unit_price
+FROM
+  Goods
+  INNER JOIN Payments p ON good = good_id
+  INNER JOIN GoodTypes gt ON type = good_type_id
+WHERE
+  good_type_name = 'delicacies'
+  AND unit_price = (SELECT * FROM max_delicacies_price)
+
+
+23-2
+SELECT
+  good_name,
+  MAX(unit_price) OVER (ORDER BY unit_price DESC) unit_price
+FROM
+  Goods
+  INNER JOIN Payments p ON good = good_id
+  INNER JOIN GoodTypes gt ON type = good_type_id
+WHERE
+  good_type_name = 'delicacies'
+LIMIT
+  1
+
+
+23-3
+SELECT
+  good_name,
+  unit_price
+FROM
+  Goods
+  INNER JOIN Payments p ON good = good_id
+  INNER JOIN GoodTypes gt ON type = good_type_id
+WHERE
+  good_type_name = 'delicacies'
+ORDER BY
+  unit_price DESC
+LIMIT
+  1
+
+
 34
 SELECT COUNT(*) count
 FROM Class
