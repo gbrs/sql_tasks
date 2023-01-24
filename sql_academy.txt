@@ -198,6 +198,23 @@ LIMIT
   1
 
 
+25
+SELECT
+  good_name
+FROM
+  Goods g
+WHERE
+  good_id NOT IN(
+        SELECT
+          good
+        FROM
+          Payments p
+        WHERE
+          date >= '2005-01-01'
+          AND date < '2006-01-01'
+        )
+
+
 34
 SELECT COUNT(*) count
 FROM Class
