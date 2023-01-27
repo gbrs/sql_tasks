@@ -215,6 +215,18 @@ WHERE
         )
 
 
+29
+SELECT
+  DISTINCT name
+FROM
+  Trip
+  INNER JOIN Pass_in_trip ON trip = Trip.id
+  INNER JOIN Passenger ON passenger = Passenger.id
+WHERE
+  town_to = 'Moscow'
+  AND plane = 'TU-134'
+
+
 34
 SELECT COUNT(*) count
 FROM Class
