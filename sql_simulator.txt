@@ -1598,6 +1598,242 @@ FROM
 LIMIT
   1
 
+-------------------------------------
+
+PART II
+
+
+1.1
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  )
+
+SELECT
+  date,
+  new_users,
+  new_couriers,
+  (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+  (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+FROM
+  users_counts_by_date u
+  INNER JOIN couriers_counts_by_date USING(date)
+
+
+1.2
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  ),
+
+  amount_table AS (
+    SELECT
+      date,
+      new_users,
+      new_couriers,
+      (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+      (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+    FROM
+      users_counts_by_date u
+      INNER JOIN couriers_counts_by_date USING(date)
+  )
+
+SELECT
+  date,
+  new_users,
+  new_couriers,
+  total_users,
+  total_couriers,
+  ROUND(100.0 * (new_users - LAG(new_users) OVER()) / LAG(new_users) OVER(), 2) new_users_change,
+  ROUND(100.0 * (new_couriers - LAG(new_couriers) OVER()) / LAG(new_couriers) OVER(), 2) new_couriers_change,
+  ROUND(100.0 * (total_users - LAG(total_users) OVER()) / LAG(total_users) OVER(), 2) total_users_growth,
+  ROUND(100.0 * (total_couriers - LAG(total_couriers) OVER()) / LAG(total_couriers) OVER(), 2) total_couriers_growth
+FROM
+  amount_table
+
+
+1.3
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  ),
+
+  amount_table AS (
+    SELECT
+      date,
+      (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+      (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+    FROM
+      users_counts_by_date u
+      INNER JOIN couriers_counts_by_date USING(date)
+  ),
+
+  paying_users_number AS (
+    SELECT
+      time:: DATE date,
+      COUNT(DISTINCT user_id) paying_users
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+    GROUP BY
+      1),
+
+  active_couriers_number AS (
+    SELECT
+      time:: DATE date,
+      COUNT(DISTINCT courier_id) active_couriers
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action='deliver_order')
+      AND action='accept_order'
+    GROUP BY
+      1)
+
+
+SELECT
+  date,
+  paying_users,
+  active_couriers,
+  ROUND(100.0 * paying_users / total_users, 2) paying_users_share,
+  ROUND(100.0 * active_couriers / total_couriers, 2) active_couriers_share
+FROM
+  paying_users_number
+  FULL JOIN active_couriers_number USING(date)
+  FULL JOIN amount_table USING(date)
+
+
+1.4
+WITH
+  users_orders AS (
+    SELECT
+      time::DATE date,
+      user_id,
+      COUNT(*) today_amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+      and action = 'create_order'
+    GROUP BY
+      date,
+      user_id)
+
+SELECT
+  date,
+  ROUND(100.0 * COUNT(*) FILTER(WHERE today_amount = 1) / COUNT(*), 2) single_order_users_share,
+  ROUND(100.0 * COUNT(*) FILTER(WHERE today_amount > 1) / COUNT(*), 2) several_orders_users_share
+FROM
+  users_orders
+GROUP BY
+  date
+ORDER BY
+  date
+
+
 
 
 
