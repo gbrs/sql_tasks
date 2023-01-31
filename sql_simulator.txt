@@ -1834,6 +1834,51 @@ ORDER BY
   date
 
 
+1.5
+WITH
+  users_first_date AS (
+    SELECT
+      user_id,
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    -- WHERE
+      -- order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+    GROUP BY
+      user_id
+  ),
+
+  users_order_counter AS (
+    SELECT
+      time::DATE AS date,
+      user_id,
+      COUNT(*) amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+          AND action = 'create_order'
+    GROUP BY
+      date,
+      user_id
+  )
+
+SELECT
+  date,
+  SUM(amount) orders,
+  COUNT(*) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)) first_orders,
+  SUM(amount) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)) new_users_orders--,
+--   first_orders_share,
+--   new_users_orders_share
+FROM
+  users_order_counter
+GROUP BY
+  date
+ORDER BY
+  date
+
+
+
 
 
 
