@@ -1836,14 +1836,24 @@ ORDER BY
 
 1.5
 WITH
+  users_first_order_date AS (
+    SELECT
+      user_id,
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    WHERE
+       order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+    GROUP BY
+      user_id
+  ),
+
   users_first_date AS (
     SELECT
       user_id,
       MIN(time)::DATE AS date
     FROM
       user_actions
-    -- WHERE
-      -- order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
     GROUP BY
       user_id
   ),
@@ -1861,19 +1871,29 @@ WITH
     GROUP BY
       date,
       user_id
-  )
+  ),
+
+  first_amounts AS (
+    SELECT
+      date,
+      SUM(amount)::INTEGER orders,
+      (COUNT(*) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_order_date)))::INTEGER first_orders,
+      (SUM(amount) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)))::INTEGER new_users_orders
+    FROM
+      users_order_counter
+    GROUP BY
+      date
+      )
 
 SELECT
   date,
-  SUM(amount) orders,
-  COUNT(*) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)) first_orders,
-  SUM(amount) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)) new_users_orders--,
---   first_orders_share,
---   new_users_orders_share
+  orders,
+  first_orders,
+  new_users_orders,
+  ROUND(100.0 * first_orders / orders, 2) first_orders_share,
+  ROUND(100.0 * new_users_orders / orders, 2) new_users_orders_share
 FROM
-  users_order_counter
-GROUP BY
-  date
+  first_amounts
 ORDER BY
   date
 
