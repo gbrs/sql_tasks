@@ -1898,6 +1898,42 @@ ORDER BY
   date
 
 
+1.6
+WITH
+  users_data AS (
+    SELECT
+      time::DATE AS date,
+      COUNT(DISTINCT user_id) paying_users,
+      COUNT(DISTINCT order_id) orders_amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+    GROUP BY
+      date
+  ),
+
+  couriers_activity AS (
+    SELECT
+      time::DATE AS date,
+      COUNT(DISTINCT courier_id) active_users
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action = 'deliver_order')
+      AND action = 'accept_order'
+    GROUP BY
+      date
+  )
+
+
+SELECT
+  date,
+  ROUND(1.0 * paying_users / active_users, 2) users_per_courier,
+  ROUND(1.0 * orders_amount / active_users, 2) orders_per_courier
+FROM
+  users_data
+  INNER JOIN couriers_activity USING(date)
 
 
 
