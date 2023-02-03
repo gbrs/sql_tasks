@@ -1936,5 +1936,30 @@ FROM
   INNER JOIN couriers_activity USING(date)
 
 
+1.7
+WITH
+  times_to_deliver AS (
+    SELECT
+      order_id,
+      EXTRACT(epoch FROM time - LAG(time) OVER(PARTITION BY order_id ORDER BY time)) / 60 time_to_deliver,
+      action,
+      time
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action='deliver_order')
+)
+
+
+SELECT
+  time::DATE as date,
+  ROUND(AVG(time_to_deliver)) minutes_to_deliver
+FROM
+  times_to_deliver
+WHERE
+  action='deliver_order'
+GROUP BY
+  time::DATE
+
 
 
