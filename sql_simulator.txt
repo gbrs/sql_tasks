@@ -1962,4 +1962,29 @@ GROUP BY
   time::DATE
 
 
+1.8
+WITH
+  amounts AS (
+    SELECT
+      DATE_PART('hour', creation_time)::INT AS hour,
+      COUNT(*) FILTER (WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')) successful_orders,
+      COUNT(*) FILTER (WHERE order_id IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')) canceled_orders
+    FROM
+      orders
+    GROUP BY
+      hour
+  )
+
+SELECT
+  *,
+  ROUND(1.0 * canceled_orders / (canceled_orders + successful_orders), 3) cancel_rate
+FROM
+  amounts
+ORDER BY
+  hour
+
+
+
+
+
 
