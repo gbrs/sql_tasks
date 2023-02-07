@@ -650,6 +650,39 @@ ORDER BY
   user_id
 
 
+7.8-2
+WITH counters AS (
+  SELECT
+    user_id,
+    COUNT(*) orders_count
+  FROM
+    user_actions
+  WHERE
+    action = 'create_order'
+  GROUP BY
+    user_id
+),
+
+average AS (
+  SELECT
+    ROUND(AVG(orders_count), 2) aver
+  FROM
+    counters
+)
+
+SELECT
+  user_id,
+  orders_count,
+  (SELECT * FROM average) orders_avg,
+  orders_count - (SELECT * FROM average) orders_diff
+FROM
+  counters
+ORDER BY
+  user_id
+LIMIT
+  1000
+
+
 7.9
 WITH last_order_id AS (
   SELECT order_id
