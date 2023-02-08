@@ -702,13 +702,27 @@ ORDER BY order_id
 WITH actions AS (
   SELECT courier_id, count(*) cnt
   FROM courier_actions
-  WHERE time >= '2022-09-01'
+  WHERE time >= '2022-09-01' AND action = 'deliver_order'
   GROUP BY courier_id
 )
 
 SELECT courier_id, birth_date, sex
 FROM couriers
-WHERE courier_id IN (SELECT courier_id FROM actions WHERE cnt > 50)
+WHERE courier_id IN (SELECT courier_id FROM actions WHERE cnt >= 30)
+ORDER BY courier_id
+
+
+7.10-2
+WITH actions AS (
+  SELECT courier_id, count(*) cnt
+  FROM courier_actions
+  WHERE time >= '2022-09-01' AND action = 'deliver_order'
+  GROUP BY courier_id
+)
+
+SELECT courier_id, birth_date, sex
+FROM couriers
+WHERE EXISTS (SELECT * FROM actions WHERE cnt >= 30 AND actions.courier_id = couriers.courier_id)
 ORDER BY courier_id
 
 
