@@ -249,10 +249,16 @@ where
 
 
 4.11
-select user_id, order_id, action, time
-from user_actions
-where time between '2022-08-25 12:00:00' and '2022-08-25 16:00:00'
-order by time desc
+SELECT user_id,
+       order_id,
+       action,
+       time
+FROM   user_actions
+WHERE  action = 'cancel_order'
+       AND time between '2022/08/01' and '2022/09/01'
+       AND date_part('dow', time) = 3
+       AND date_part('hour', time) BETWEEN 12 AND 15
+ORDER BY time desc
 
 
 4.12
