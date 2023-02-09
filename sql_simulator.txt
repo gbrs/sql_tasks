@@ -784,6 +784,26 @@ WHERE product_id IN (SELECT product_id  FROM expensive)
 ORDER BY order_id
 
 
+7.14-2
+WITH
+  goods AS (
+    SELECT order_id, product_ids, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+
+  expensive AS (
+    SELECT product_id
+    FROM products
+    ORDER BY price DESC
+    LIMIT 5
+  )
+
+SELECT DISTINCT order_id, product_ids
+FROM goods
+WHERE EXISTS (SELECT product_id  FROM expensive WHERE goods.product_id = expensive.product_id)
+ORDER BY order_id
+
+
 7.15
 WITH
   last_times AS (
