@@ -587,12 +587,24 @@ WHERE time BETWEEN
                 AND (SELECT mx FROM latest)
 
 
+7.5-2
+SELECT COUNT (DISTINCT user_id) users_count
+FROM user_actions
+WHERE time > (SELECT MAX(time) mx FROM user_actions) - INTERVAL '1 week'
+
+
 7.6
 WITH maxi AS (
   SELECT MAX(time) that_day FROM courier_actions
 )
 
 SELECT MIN(AGE((SELECT that_day FROM maxi)::DATE, birth_date))::VARCHAR AS min_age
+FROM couriers
+WHERE sex = 'male'
+
+
+7.6-2
+SELECT MIN(AGE((SELECT MAX(time) FROM courier_actions)::DATE, birth_date))::VARCHAR AS min_age
 FROM couriers
 WHERE sex = 'male'
 
@@ -832,6 +844,22 @@ WITH
 SELECT
   user_id,
   COALESCE (age, (SELECT avg_age FROM average_age)) age
+FROM ages
+ORDER BY user_id
+
+
+7.15-2
+WITH
+  ages AS (
+    SELECT
+      user_id,
+      DATE_PART('YEAR', AGE(( SELECT MAX(time) FROM user_actions), birth_date)) AS age
+    FROM users
+  )
+
+SELECT
+  user_id,
+  COALESCE (age, (SELECT ROUND(AVG(age)) FROM ages)) age
 FROM ages
 ORDER BY user_id
 
