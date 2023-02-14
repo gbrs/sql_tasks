@@ -929,6 +929,26 @@ ORDER BY
     users_birth_date, couriers_birth_date
 
 
+8.6-2
+SELECT
+    u.birth_date AS users_birth_date,
+    CASE WHEN COUNT(DISTINCT u.user_id) > 0 THEN COUNT(DISTINCT u.user_id) ELSE NULL END AS users_count,
+    c.birth_date AS couriers_birth_date,
+    CASE WHEN COUNT(DISTINCT c.courier_id) > 0 THEN COUNT(DISTINCT c.courier_id) ELSE NULL END AS couriers_count
+FROM
+    users u
+    FULL JOIN couriers c USING (birth_date)
+WHERE
+    u.birth_date IS NOT NULL
+    OR c.birth_date IS NOT NULL
+GROUP BY
+    u.birth_date,
+    c.birth_date
+ORDER BY
+    users_birth_date,
+    couriers_birth_date
+
+
 8.7
 SELECT
     COUNT(*) dates_count
