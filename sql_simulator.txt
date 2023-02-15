@@ -1191,6 +1191,50 @@ ORDER BY
   user_id
 
 
+8.14-2
+WITH
+  splited_orders AS (
+    SELECT order_id, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+  order_sums AS (
+    SELECT
+      order_id,
+      SUM(price) order_value
+    FROM
+      splited_orders
+      JOIN products USING(product_id)
+    GROUP BY
+      order_id
+  ),
+  order_sizes AS (
+    SELECT
+      user_id,
+      order_id,
+      array_length(product_ids, 1) order_size
+    FROM
+      user_actions ua
+      INNER JOIN orders ord USING (order_id)
+    WHERE ord.order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+  )
+
+SELECT
+  user_id,
+  COUNT(order_id) orders_count,
+  ROUND(AVG(order_size), 2) avg_order_size,
+  SUM(order_value) sum_order_value,
+  ROUND(AVG(order_value), 2) avg_order_value,
+  MIN(order_value) min_order_value,
+  MAX(order_value) max_order_value
+FROM
+  order_sums
+  JOIN order_sizes USING (order_id)
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+
+
 8.15
 WITH
   splited_orders AS (
