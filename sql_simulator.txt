@@ -2164,8 +2164,42 @@ FROM
 ORDER BY
   hour
 
+------------------------
 
+2.1
+WITH
 
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    ),
+
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            INNER JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    )
+
+SELECT
+    date,
+    revenue
+FROM
+    order_sums
+LIMIT 5
 
 
 
