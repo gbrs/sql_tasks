@@ -2168,7 +2168,6 @@ ORDER BY
 
 2.1
 WITH
-
     splited_orders AS(
         SELECT
             order_id,
@@ -2196,10 +2195,11 @@ WITH
 
 SELECT
     date,
-    revenue
+    revenue,
+    SUM(revenue) OVER(ORDER BY date) total_revenue,
+    ROUND(100.0 * (revenue - LAG(revenue, 1) OVER()) / LAG(revenue, 1) OVER(), 2) AS revenue_change
 FROM
     order_sums
-LIMIT 5
 
 
 
