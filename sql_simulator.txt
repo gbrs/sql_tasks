@@ -2202,4 +2202,60 @@ FROM
     order_sums
 
 
+2.2
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    ),
+
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    counter AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT user_id) active_users,
+            COUNT(DISTINCT user_id) FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) paying_users,
+            COUNT(DISTINCT order_id) FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) order_count
+        FROM
+            user_actions ua1
+        GROUP BY
+            date
+    )
+
+SELECT
+    date,
+    ROUND(revenue / active_users, 2) arpu,
+    ROUND(revenue / paying_users, 2) arppu,
+    ROUND(revenue / order_count, 2) aov
+FROM
+    order_sums
+    INNER JOIN counter USING (date)
+
+
+
 
