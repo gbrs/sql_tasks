@@ -2257,5 +2257,97 @@ FROM
     INNER JOIN counter USING (date)
 
 
+2.3
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE NOT EXISTS (SELECT * FROM user_actions
+                            WHERE action = 'cancel_order'
+                            AND orders.order_id = user_actions.order_id)
+    ),
+
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    users_first_order_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            user_actions ua1
+        WHERE NOT EXISTS (SELECT * FROM user_actions ua2
+                            WHERE ua1.order_id = ua2.order_id
+                            AND action = 'cancel_order')
+        GROUP BY
+            user_id
+    ),
+
+    paying_user_count AS (
+        SELECT
+            date,
+            COUNT(DISTINCT user_id) paying_users
+        FROM
+            users_first_order_date
+        GROUP BY
+            date
+    ),
+
+    users_first_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    active_user_count AS (
+        SELECT
+            date,
+            COUNT(DISTINCT user_id) active_users
+        FROM
+            users_first_date
+        GROUP BY
+            date
+    ),
+
+    order_counter AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT order_id) order_count
+        FROM
+            user_actions ua1
+        WHERE NOT EXISTS (SELECT * FROM user_actions ua2
+                            WHERE ua1.order_id = ua2.order_id
+                            AND action = 'cancel_order')
+        GROUP BY
+            date
+    )
+
+
+SELECT
+    date,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(active_users) OVER(ORDER BY date), 2) running_arpu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(paying_users) OVER(ORDER BY date), 2) running_arppu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(order_count) OVER(ORDER BY date), 2) running_aov
+FROM
+    order_sums
+    INNER JOIN paying_user_count USING (date)
+    INNER JOIN active_user_count USING (date)
+    INNER JOIN order_counter USING (date)
 
 
