@@ -2351,3 +2351,77 @@ FROM
     INNER JOIN order_counter USING (date)
 
 
+2.4
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+            AND creation_time BETWEEN '2022-08-26' AND '2022-09-09'
+    ),
+
+    order_sums AS (
+        SELECT
+            TO_CHAR(creation_time, 'Day') weekday,
+            DATE_PART('isodow', creation_time) weekday_number,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            weekday, weekday_number
+    ),
+
+    counter AS (
+        SELECT
+            TO_CHAR(time, 'Day') weekday,
+            DATE_PART('isodow', time) weekday_number,
+            COUNT(DISTINCT user_id) active_users,
+            COUNT(DISTINCT user_id)
+                    FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) paying_users,
+            COUNT(DISTINCT order_id)
+                    FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) order_count
+        FROM
+            user_actions ua1
+        WHERE
+            time BETWEEN '2022-08-26' AND '2022-09-09'
+        GROUP BY
+            weekday, weekday_number
+    )
+
+SELECT
+    weekday,
+    weekday_number,
+    ROUND(revenue / active_users, 2) arpu,
+    ROUND(revenue / paying_users, 2) arppu,
+    ROUND(revenue / order_count, 2) aov
+FROM
+    order_sums
+    INNER JOIN counter USING (weekday, weekday_number)
+ORDER BY
+    weekday_number
+
+
+
+
+"""
+Сделал всего только второе задание в "Маркетинговые метрики",
+но уже убедился, что с точки зрения данных это большая подстава -
+в списках id-шников id пользователей дублируются,
+в таблице users нет тех пользователей которые есть в user_actions
+в упомянутых списках пользователей. В общем в данных веселуха...
+"""
