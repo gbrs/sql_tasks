@@ -2416,6 +2416,63 @@ ORDER BY
     weekday_number
 
 
+2.5
+WITH
+    splited_orders AS(
+        SELECT
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    ),
+
+    total(total_sum) AS (
+        SELECT
+            SUM(price)
+        FROM
+            splited_orders
+            LEFT JOIN products USING (product_id)
+    ),
+
+    product_sums AS (
+        SELECT
+            name product_name,
+            SUM(price) revenue,
+            100.0 * SUM(price) / total_sum share_in_revenue
+        FROM
+            splited_orders
+            LEFT JOIN products USING (product_id)
+            CROSS JOIN total
+        GROUP BY
+            product_name, total_sum
+    ),
+
+    product_sums_with_others AS (
+        SELECT
+            CASE
+                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
+                ELSE product_name
+                END AS product_name,
+            revenue
+        FROM
+            product_sums
+    )
+
+
+SELECT
+    product_name,
+    SUM(revenue) revenue,
+    ROUND(100.0 * SUM(revenue) / total_sum, 2) share_in_revenue
+FROM
+    product_sums_with_others, total
+GROUP BY
+    product_name, total_sum
+ORDER BY
+    revenue desc
 
 
 """
