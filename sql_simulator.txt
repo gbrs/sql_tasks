@@ -2143,6 +2143,33 @@ GROUP BY
   time::DATE
 
 
+1.7-2
+WITH
+  times_to_deliver AS (
+    SELECT
+      order_id,
+      EXTRACT(epoch FROM MAX(time) - MIN(time)) / 60 time_to_deliver,
+      MAX(time)::DATE date
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action='deliver_order')
+    GROUP BY
+      order_id
+)
+
+
+SELECT
+  date,
+  ROUND(AVG(time_to_deliver))::INT minutes_to_deliver
+FROM
+  times_to_deliver
+GROUP BY
+  date
+ORDER BY
+  date
+
+
 1.8
 WITH
   amounts AS (
