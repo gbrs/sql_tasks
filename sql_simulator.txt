@@ -2469,7 +2469,7 @@ WITH
         SELECT
             name product_name,
             SUM(price) revenue,
-            100.0 * SUM(price) / total_sum share_in_revenue
+            ROUND(100.0 * SUM(price) / total_sum, 2) share_in_revenue
         FROM
             splited_orders
             LEFT JOIN products USING (product_id)
@@ -2484,7 +2484,8 @@ WITH
                 WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
                 ELSE product_name
                 END AS product_name,
-            revenue
+            revenue,
+            share_in_revenue
         FROM
             product_sums
     )
@@ -2493,11 +2494,11 @@ WITH
 SELECT
     product_name,
     SUM(revenue) revenue,
-    ROUND(100.0 * SUM(revenue) / total_sum, 2) share_in_revenue
+    SUM(share_in_revenue) share_in_revenue
 FROM
-    product_sums_with_others, total
+    product_sums_with_others
 GROUP BY
-    product_name, total_sum
+    product_name
 ORDER BY
     revenue desc
 
