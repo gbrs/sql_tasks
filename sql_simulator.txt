@@ -2503,6 +2503,127 @@ ORDER BY
     revenue desc
 
 
+2.6
+WITH
+    splited_orders as (
+        SELECT
+            unnest (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            not exists (SELECT *
+                        FROM user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+        ),
+
+    total(total_sum) as (
+        SELECT
+            sum(price)
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+    ),
+
+    product_sums as (
+        SELECT
+            name product_name,
+            sum(price) revenue,
+            round(100.0 * sum(price) / total_sum, 2) share_in_revenue
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+            CROSS JOIN total
+        GROUP BY
+            product_name,
+            total_sum
+    ),
+
+    product_sums_with_others as (
+        SELECT
+            CASE
+                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
+                ELSE product_name
+                END as product_name,
+            revenue,
+            share_in_revenue
+        FROM
+            product_sums
+    )
+
+SELECT
+    product_name,
+    sum(revenue) revenue,
+    sum(share_in_revenue) share_in_revenue
+FROM
+    product_sums_with_others
+GROUP BY
+    product_name
+ORDER BY
+    revenue desc
+
+
+2.2.7
+WITH
+    splited_orders as (
+        SELECT
+            unnest (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            not exists (SELECT *
+                        FROM user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+        ),
+
+    total(total_sum) as (
+        SELECT
+            sum(price)
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+    ),
+
+    product_sums as (
+        SELECT
+            name product_name,
+            sum(price) revenue,
+            round(100.0 * sum(price) / total_sum, 2) share_in_revenue
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+            CROSS JOIN total
+        GROUP BY
+            product_name,
+            total_sum
+    ),
+
+    product_sums_with_others as (
+        SELECT
+            CASE
+                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
+                ELSE product_name
+                END as product_name,
+            revenue,
+            share_in_revenue
+        FROM
+            product_sums
+    )
+
+SELECT
+    product_name,
+    sum(revenue) revenue,
+    sum(share_in_revenue) share_in_revenue
+FROM
+    product_sums_with_others
+GROUP BY
+    product_name
+ORDER BY
+    revenue desc
+
+
+
 """
 Сделал всего только второе задание в "Маркетинговые метрики",
 но уже убедился, что с точки зрения данных это большая подстава -
