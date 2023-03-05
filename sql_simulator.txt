@@ -2444,63 +2444,54 @@ ORDER BY
 
 
 2.5
-WITH
-    splited_orders AS(
+with
+    splited_orders as(
         SELECT
-            UNNEST (product_ids) product_id
+            order_id,
+            user_id,
+            creation_time::date date,
+            unnest (product_ids) product_id
         FROM
             orders
+            LEFT JOIN user_actions using(order_id)
         WHERE
-            NOT EXISTS (SELECT *
-                        FROM user_actions
-                        WHERE action = 'cancel_order'
-                                AND orders.order_id = user_actions.order_id)
+            not exists (SELECT *
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
     ),
 
-    total(total_sum) AS (
-        SELECT
-            SUM(price)
+    users_first_date as (
+        SELECT DISTINCT
+            user_id,
+            min(time)::date as first_date
         FROM
-            splited_orders
-            LEFT JOIN products USING (product_id)
-    ),
-
-    product_sums AS (
-        SELECT
-            name product_name,
-            SUM(price) revenue,
-            ROUND(100.0 * SUM(price) / total_sum, 2) share_in_revenue
-        FROM
-            splited_orders
-            LEFT JOIN products USING (product_id)
-            CROSS JOIN total
+            user_actions
         GROUP BY
-            product_name, total_sum
+            user_id
     ),
 
-    product_sums_with_others AS (
+    order_sums as (
         SELECT
-            CASE
-                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
-                ELSE product_name
-                END AS product_name,
-            revenue,
-            share_in_revenue
+            date,
+            sum(price) revenue,
+            sum(price) filter(WHERE (so.user_id, so.date) in (SELECT user_id, first_date FROM users_first_date)) new_users_revenue
         FROM
-            product_sums
-    )
-
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY date
+)
 
 SELECT
-    product_name,
-    SUM(revenue) revenue,
-    SUM(share_in_revenue) share_in_revenue
+    date,
+    revenue,
+    new_users_revenue,
+    round(100 * new_users_revenue / revenue, 2) new_users_revenue_share,
+    round(100 * (revenue - new_users_revenue) / revenue, 2) old_users_revenue_share
 FROM
-    product_sums_with_others
-GROUP BY
-    product_name
+    order_sums
 ORDER BY
-    revenue desc
+    date
 
 
 2.6
@@ -2563,10 +2554,34 @@ ORDER BY
     revenue desc
 
 
-2.2.7
+2.7
 WITH
+    product_prices_and_vat as (
+        SELECT
+            product_id,
+            price,
+            CASE
+                WHEN name IN ('сахар', 'сухарики', 'сушки', 'семечки',
+                                'масло льняное', 'виноград', 'масло оливковое',
+                                'арбуз', 'батон', 'йогурт', 'сливки', 'гречка',
+                                'овсянка', 'макароны', 'баранина', 'апельсины',
+                                'бублики', 'хлеб', 'горох', 'сметана', 'рыба копченая',
+                                'мука', 'шпроты', 'сосиски', 'свинина', 'рис',
+                                'масло кунжутное', 'сгущенка', 'ананас', 'говядина',
+                                'соль', 'рыба вяленая', 'масло подсолнечное', 'яблоки',
+                                'груши', 'лепешка', 'молоко', 'курица', 'лаваш', 'вафли',
+                                'мандарины')
+                THEN ROUND(price / 1.1 * 0.1, 2)
+                ELSE ROUND(price / 1.2 * 0.2, 2)
+                END as vat
+        FROM
+            products
+    ),
+
     splited_orders as (
         SELECT
+            creation_time::date date,
+            order_id,
             unnest (product_ids) product_id
         FROM
             orders
@@ -2575,52 +2590,111 @@ WITH
                         FROM user_actions
                         WHERE  action = 'cancel_order'
                                 and orders.order_id = user_actions.order_id)
-        ),
-
-    total(total_sum) as (
-        SELECT
-            sum(price)
-        FROM
-            splited_orders
-            LEFT JOIN products using (product_id)
     ),
 
-    product_sums as (
+    access_sums as (
         SELECT
-            name product_name,
-            sum(price) revenue,
-            round(100.0 * sum(price) / total_sum, 2) share_in_revenue
-        FROM
-            splited_orders
-            LEFT JOIN products using (product_id)
-            CROSS JOIN total
-        GROUP BY
-            product_name,
-            total_sum
-    ),
-
-    product_sums_with_others as (
-        SELECT
+            date,
+            sum(price) total,
+            sum(vat) total_vat,
             CASE
-                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
-                ELSE product_name
-                END as product_name,
-            revenue,
-            share_in_revenue
+                WHEN date < '2022-09-01' THEN COUNT(DISTINCT order_id) * 140
+                ELSE COUNT(DISTINCT order_id) * 115
+                END as assembly_costs,
+            CASE
+                WHEN date < '2022-09-01' THEN 120000
+                ELSE 150000
+                END as rental_costs
         FROM
-            product_sums
+            splited_orders
+            LEFT JOIN product_prices_and_vat using (product_id)
+        GROUP BY
+            date
+    ),
+
+    delivery_by_working_shift as (
+        SELECT
+            time::date date,
+            COUNT(order_id) delivered_orders
+        FROM
+            courier_actions
+        WHERE
+            action = 'deliver_order'
+        GROUP BY
+            date,
+            courier_id
+    ),
+
+    delivery_costs as (
+        SELECT
+            date,
+            SUM(delivered_orders) * 150 as delivery_cost
+        FROM
+            delivery_by_working_shift
+        GROUP BY
+            date
+    ),
+
+    delivery_bonuses as (
+        SELECT
+            date,
+            CASE
+                WHEN date < '2022-09-01' THEN COUNT(delivered_orders) * 400
+                ELSE COUNT(delivered_orders) * 500
+                END as delivery_bonus
+        FROM
+            delivery_by_working_shift
+        WHERE
+            delivered_orders > 4
+        GROUP BY
+            date
+    ),
+
+    sum_metrics as (
+        SELECT
+            date,
+            total as revenue,
+            assembly_costs + rental_costs + delivery_cost + coalesce(delivery_bonus, 0) as costs,
+            total_vat as tax
+        FROM
+            access_sums
+            LEFT JOIN delivery_costs USING (date)
+            LEFT JOIN delivery_bonuses USING (date)
+    ),
+
+    rolling_metrics as (
+        SELECT
+            date,
+            revenue,
+            costs,
+            tax,
+            revenue - costs - tax as gross_profit,
+            SUM(revenue) OVER(ORDER BY date) as total_revenue,
+            SUM(costs) OVER(ORDER BY date) as total_costs,
+            SUM(tax) OVER(ORDER BY date) as total_tax,
+            SUM(revenue - costs - tax) OVER(ORDER BY date) as total_gross_profit
+        FROM
+            sum_metrics
     )
 
 SELECT
-    product_name,
-    sum(revenue) revenue,
-    sum(share_in_revenue) share_in_revenue
+    date,
+    revenue,
+    costs,
+    tax,
+    gross_profit,
+    total_revenue,
+    total_costs,
+    total_tax,
+    total_gross_profit,
+    ROUND(100 * gross_profit / revenue, 2) as gross_profit_ratio,
+    ROUND(100 * total_gross_profit / total_revenue, 2) as total_gross_profit_ratio
 FROM
-    product_sums_with_others
-GROUP BY
-    product_name
+    rolling_metrics
 ORDER BY
-    revenue desc
+    date
+
+
 
 
 
