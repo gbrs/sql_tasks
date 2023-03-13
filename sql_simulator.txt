@@ -2983,6 +2983,30 @@ ORDER BY
     avg_check desc
 
 
+2mm-4
+WITH
+    start_days as (
+        SELECT
+            user_id,
+            time::date dt,
+            (min(time) OVER(PARTITION BY user_id))::DATE start_date
+        FROM
+            user_actions
+    )
+
+SELECT
+    date_trunc('month', start_date)::date start_month,
+    start_date,
+    dt - start_date day_number,
+    round(count(distinct user_id)::decimal / max(count(distinct user_id)) OVER(PARTITION BY start_date), 2) retention
+FROM
+    start_days
+GROUP BY
+    start_month,
+    start_date,
+    day_number
+
+
 """
 Сделал всего только второе задание в "Маркетинговые метрики",
 но уже убедился, что с точки зрения данных это большая подстава -
