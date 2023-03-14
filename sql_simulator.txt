@@ -487,8 +487,9 @@ ORDER BY courier_id
 6.10
 SELECT user_id
 FROM user_actions
+WHERE action = 'create_order'
 GROUP BY user_id
-HAVING MAX(DATE_PART('month', time)) = 8
+HAVING MAX(time) < '2022-09-08'
 ORDER BY user_id
 
 
@@ -1053,6 +1054,26 @@ ORDER BY
   ord.order_id
 
 
+8.10-2
+SELECT
+  ua.user_id,
+  ord.order_id,
+  ord.product_ids
+FROM
+  user_actions ua
+  INNER JOIN
+  orders ord
+  ON ua.order_id = ord.order_id
+WHERE
+  NOT EXISTS (SELECT * FROM user_actions ua2 WHERE action = 'cancel_order' and ua.order_id = ua2.order_id)
+--   ord.order_id IN (SELECT order_id FROM not_canceled_orders)
+ORDER BY
+  ua.user_id,
+  ord.order_id
+LIMIT
+  1000
+
+
 8.11
 WITH not_canceled_orders AS(
   SELECT order_id
@@ -1240,6 +1261,9 @@ WITH
   splited_orders AS (
     SELECT DISTINCT order_id, UNNEST(product_ids) product_id
     FROM orders
+    WHERE order_id in (SELECT order_id
+                        FROM courier_actions
+                        WHERE time >= '2022-09-01' and action = 'deliver_order')
   ),
   counter AS (
     SELECT product_id, COUNT(*) times_purchased
@@ -1268,7 +1292,7 @@ WITH cancel_rates AS (
 )
 
 SELECT
-  COALESCE(sex, 'unknown'),
+  COALESCE(sex, 'unknown') sex,
   ROUND(AVG(cancel_rate), 3) avg_cancel_rate
 FROM
   cancel_rates
