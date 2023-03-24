@@ -207,10 +207,25 @@ from products
 where name LIKE '%чай%'
 
 
+4.2new
+select user_id
+from users
+where sex = 'female'
+order by user_id
+limit 1000
+
+
 4.3
 select product_id, name
 from products
 where name LIKE 'с%' and name not LIKE '% %'
+
+
+4.3new
+select user_id, order_id, time
+from user_actions
+where time > '2022-09-06' and action='create_order'
+order by order_id
 
 
 4.4
@@ -228,6 +243,20 @@ where
   and price > 60
 
 
+4.4new
+select
+  product_id,
+  name,
+  price old_price,
+  0.8 * price new_price
+from
+  products
+where
+  0.8 * price > 100
+order by
+  product_id
+
+
 4.5
 select
   user_id,
@@ -241,6 +270,17 @@ where
   and time between '2022-08-25' and '2022-09-05'
 order by
   time desc
+
+
+4.5new
+select
+  product_id,
+  name
+from
+  products
+where
+  SPLIT_PART(name, ' ', 1) = 'чай'
+  or LENGTH(name) = 5
 
 
 4.6
