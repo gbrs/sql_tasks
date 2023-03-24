@@ -3295,12 +3295,13 @@ WITH
         FROM
             splited_orders so
             LEFT JOIN products p ON so.product_id = p.product_id
+            LEFT JOIN user_actions USING (order_id)
         GROUP BY
             ads_campaign,
             date
     ),
 
-    users_first_order_date as (
+    paying_user_count as (
         SELECT
             CASE
                 WHEN user_id IN (8804, 9828, 9524, 9667, 9165, 10013, 9625, 8879, 9145, 8657, 8706, 9476, 9813,
@@ -3341,18 +3342,16 @@ WITH
                                     9327, 9790, 8719, 9706, 9289, 9047, 9495, 9558, 8650, 9784, 8935, 9764, 8712)
                 THEN 'Кампания № 2'
                 END as ads_campaign,
-            user_id,
-            MIN(time)::DATE AS date
+            COUNT(DISTINCT user_id) campaign_user_count
         FROM
             user_actions ua1
         WHERE NOT EXISTS (SELECT * FROM user_actions ua2
                             WHERE ua1.order_id = ua2.order_id
                             AND action = 'cancel_order')
         GROUP BY
-            ads_campaign,
-            user_id
-    ),
-
+            ads_campaign
+    ) --,
+/*
     paying_user_count as (
         SELECT
             ads_campaign,
@@ -3363,8 +3362,9 @@ WITH
         GROUP BY
             ads_campaign,
             date
-    )
 
+    )
+*/
 
 /*
 SELECT
@@ -3380,10 +3380,17 @@ ORDER BY
 SELECT
     ads_campaign,
     date,
-    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(paying_users) OVER(ORDER BY date), 2) running_arppu
+    SUM(revenue) OVER(ORDER BY date),
+    campaign_user_count,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / campaign_user_count, 2) running_arppu
 FROM
     order_sums
-    LEFT JOIN paying_user_count USING (ads_campaign, date)
+    LEFT JOIN paying_user_count USING (ads_campaign)
+WHERE
+    ads_campaign IS NOT NULL
+ORDER BY
+    ads_campaign,
+    date
 
 
 
