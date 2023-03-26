@@ -1186,6 +1186,30 @@ ORDER BY
   user_id
 
 
+8.11-2
+SELECT
+  user_id,
+  ROUND(AVG(array_length(product_ids, 1)), 2) avg_order_size
+FROM
+  (SELECT
+    ua.user_id,
+    ord.order_id,
+    ord.product_ids
+  FROM
+    user_actions ua
+    INNER JOIN
+    orders ord
+    ON ua.order_id = ord.order_id
+  WHERE
+    NOT EXISTS (SELECT * FROM user_actions ua2 WHERE action = 'cancel_order' and ua.order_id = ua2.order_id)) user_orders
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+LIMIT
+  1000
+
+
 8.12
 SELECT
   order_id, splited_orders.product_id, price
@@ -1244,7 +1268,6 @@ WITH
     GROUP BY
       order_id
   ),
-
   not_canceled_orders AS (
     SELECT order_id
     FROM user_actions
@@ -1332,6 +1355,50 @@ GROUP BY
   user_id
 ORDER BY
   user_id
+
+
+8.14-3
+WITH
+  order_sums AS (
+    SELECT
+      order_id,
+      SUM(price) order_value
+    FROM
+      (SELECT order_id, UNNEST(product_ids) product_id FROM orders) splited_orders
+      JOIN products USING(product_id)
+    GROUP BY
+      order_id
+  ),
+
+  order_sizes AS(
+    SELECT
+      ua.user_id,
+      ord.order_id,
+      array_length(ord.product_ids, 1) order_size
+    FROM
+      user_actions ua
+      INNER JOIN orders ord USING (order_id)
+    WHERE
+      NOT EXISTS (SELECT order_id FROM user_actions ua2 WHERE action = 'cancel_order' AND ua.order_id = ua2.order_id)
+  )
+
+SELECT
+  user_id,
+  COUNT(order_id) orders_count,
+  ROUND(AVG(order_size), 2) avg_order_size,
+  SUM(order_value) sum_order_value,
+  ROUND(AVG(order_value), 2) avg_order_value,
+  MIN(order_value) min_order_value,
+  MAX(order_value) max_order_value
+FROM
+  order_sums
+  JOIN order_sizes USING (order_id)
+GROUP BY
+  user_id
+ORDER BY
+  user_id
+LIMIT
+  1000
 
 
 8.15
@@ -1484,6 +1551,43 @@ GROUP BY
 ORDER BY
   count_pair DESC,
   pair
+
+
+8.20-2
+WITH
+  splited_orders AS (
+    SELECT DISTINCT order_id, UNNEST(product_ids) product_id
+    FROM orders o
+    WHERE NOT EXISTS (SELECT order_id FROM user_actions ua WHERE action = 'cancel_order' AND ua.order_id = o.order_id)
+  ),
+  named_orders AS (
+    SELECT order_id, name
+    FROM splited_orders
+      JOIN products USING (product_id)
+  ),
+  pairs AS (
+    SELECT
+      no.order_id,
+      array[no.name, no2.name] pair
+    FROM
+      named_orders no
+      CROSS JOIN named_orders no2
+    WHERE no.order_id = no2.order_id
+          AND no.name < no2.name
+  )
+
+
+SELECT
+  pair,
+  COUNT(pair) count_pair
+FROM
+  pairs
+GROUP BY
+  pair
+ORDER BY
+  count_pair DESC,
+  pair
+
 
 ------------------
 
