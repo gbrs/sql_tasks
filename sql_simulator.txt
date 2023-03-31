@@ -3549,8 +3549,57 @@ ORDER BY
     date
 
 
+Тестирование на курсе "Инженер данных"
+
+https://lab.karpov.courses/learning/29/module/1334/lesson/12697/36704/178500/
+SELECT
+  group_id
+FROM
+  group_table
+  LEFT JOIN student_table USING (group_id)
+GROUP BY
+  group_id
+HAVING
+  COUNT(distinct student_id) > 5
+ORDER BY
+  COUNT(distinct student_id)  desc,
+  group_id
 
 
+https://lab.karpov.courses/learning/29/module/1334/lesson/12697/36704/178501/
+!!! не верно
+SELECT
+  group_id
+FROM
+  group_table
+  LEFT JOIN student_table USING (group_id)
+GROUP BY
+  group_id
+HAVING
+  COUNT(*) < 30
+ORDER BY
+  COUNT(distinct student_id)  desc,
+  group_id
+
+
+https://lab.karpov.courses/learning/29/module/1334/lesson/12697/36704/178532/
+select
+  student_name,
+  course_name,
+  mark
+from
+  (select
+    student_name,
+    course_name,
+    mark,
+    row_number() over (partition by course_name order by mark desc) mark_rank
+  from
+    marks ) t
+where
+  mark_rank < 6
+order by
+  course_name ,
+  mark_rank
 
 """
 Сделал всего только второе задание в "Маркетинговые метрики",
