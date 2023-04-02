@@ -1676,6 +1676,20 @@ WHERE
   order_id IN (SELECT * FROM not_canceled_orders)
 
 
+9.5-2
+SELECT
+  user_id,
+  order_id,
+  time,
+  ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY time) order_number
+FROM
+  user_actions ua1
+WHERE
+  NOT EXISTS (SELECT * FROM user_actions ua2 WHERE action = 'cancel_order' AND ua1.order_id = ua2.order_id)
+LIMIT
+  1000
+
+
 9.6
 SELECT
   user_id,
@@ -1688,6 +1702,22 @@ FROM
   user_actions
 WHERE
   order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+
+
+9.6-2
+SELECT
+  user_id,
+  order_id,
+  time,
+  ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY time) order_number,
+  LAG(time, 1) OVER(PARTITION BY user_id ORDER BY time) time_lag,
+  time - LAG(time, 1) OVER(PARTITION BY user_id ORDER BY time) time_diff
+FROM
+  user_actions ua1
+WHERE
+  NOT EXISTS (SELECT * FROM user_actions ua2 WHERE action = 'cancel_order' AND ua1.order_id = ua2.order_id)
+LIMIT
+  1000
 
 
 9.7
@@ -1916,6 +1946,49 @@ WITH
       ROUND(SUM(order_price), 1) daily_revenue
     FROM
       valued_orders
+    GROUP BY
+      date
+  )
+
+SELECT
+  date,
+  daily_revenue,
+  COALESCE(
+      ROUND(
+          daily_revenue - LAG(daily_revenue) OVER (ORDER BY date)
+          , 1)
+      , 0
+  ) AS revenue_growth_abs,
+  COALESCE(
+      ROUND(
+           100.0 * (daily_revenue - LAG(daily_revenue) OVER (ORDER BY date))
+               / LAG(daily_revenue) OVER (ORDER BY date)
+           , 1)
+      , 0
+  ) AS revenue_growth_percentage
+FROM
+  valued_days
+ORDER BY
+  date
+
+
+9.15-2
+WITH
+  splited_orders AS (
+    SELECT
+      order_id,
+      creation_time,
+      UNNEST(product_ids) product_id
+    FROM orders
+    WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+  ),
+  valued_days AS (
+    SELECT
+      creation_time::DATE AS date,
+      ROUND(SUM(price), 1) daily_revenue
+    FROM
+      splited_orders
+      INNER JOIN products USING (product_id)
     GROUP BY
       date
   )
@@ -3548,6 +3621,7 @@ ORDER BY
     ads_campaign,
     date
 
+----------------------------------------------------------------
 
 Тестирование на курсе "Инженер данных"
 
@@ -3567,7 +3641,6 @@ ORDER BY
 
 
 https://lab.karpov.courses/learning/29/module/1334/lesson/12697/36704/178501/
-!!! не верно
 SELECT
   group_id
 FROM
@@ -3576,9 +3649,9 @@ FROM
 GROUP BY
   group_id
 HAVING
-  COUNT(*) < 30
+  COUNT(distinct student_id) < 30 and COUNT(distinct student_id) > 0
 ORDER BY
-  COUNT(distinct student_id)  desc,
+  COUNT(distinct student_id),
   group_id
 
 
@@ -3601,10 +3674,3 @@ order by
   course_name ,
   mark_rank
 
-"""
-Сделал всего только второе задание в "Маркетинговые метрики",
-но уже убедился, что с точки зрения данных это большая подстава -
-в списках id-шников id пользователей дублируются,
-в таблице users нет тех пользователей которые есть в user_actions
-в упомянутых списках пользователей. В общем в данных веселуха...
-"""
