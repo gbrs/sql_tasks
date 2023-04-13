@@ -1882,6 +1882,36 @@ ORDER BY
   courier_id
 
 
+9.13-2
+WITH
+  days_together AS (
+    SELECT
+      courier_id,
+      DATE_PART(
+        'DAY',
+        (SELECT MAX(time) FROM courier_actions) - MIN(time) OVER(PARTITION BY courier_id)
+      ) AS days_employed,
+      action
+    FROM
+      courier_actions
+  )
+
+SELECT
+  courier_id,
+  MAX(days_employed) days_employed,
+  COUNT(action) delivered_orders
+FROM
+  days_together
+WHERE
+  days_employed >= 10
+  AND action = 'deliver_order'
+GROUP BY
+  courier_id
+ORDER BY
+  days_employed DESC,
+  courier_id
+
+
 9.14
 WITH
   splited_orders AS (
