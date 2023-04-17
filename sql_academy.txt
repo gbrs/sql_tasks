@@ -139,6 +139,34 @@ FROM Payments
 WHERE good_name = 'potato'
 
 
+20
+SELECT
+    status,
+    member_name,
+    SUM(amount * unit_price ) costs
+FROM
+    FamilyMembers fm
+    INNER JOIN Payments p ON fm.member_id = p.family_member
+    INNER JOIN Goods g ON g.good_id = p.good
+    INNER JOIN GoodTypes gt ON g.type = gt.good_type_id
+WHERE
+    good_type_name = 'entertainment'
+GROUP BY
+    member_id
+
+
+21
+SELECT
+    good_name
+FROM
+    Goods g
+    INNER JOIN Payments p ON g.good_id = p.good
+GROUP BY
+    good
+HAVING
+    COUNT(*) > 1
+
+
 22
 SELECT member_name
 FROM FamilyMembers
