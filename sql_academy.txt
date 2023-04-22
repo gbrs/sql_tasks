@@ -226,6 +226,20 @@ LIMIT
   1
 
 
+24
+SELECT
+    member_name,
+    SUM(amount * unit_price) costs
+FROM
+    FamilyMembers fm
+    INNER JOIN Payments p ON fm.member_id = p.family_member
+WHERE
+    YEAR(p.date) = 2005
+    AND MONTH(p.date) = 6
+GROUP BY
+    member_name
+
+
 25
 SELECT
   good_name
