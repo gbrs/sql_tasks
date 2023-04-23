@@ -257,6 +257,22 @@ WHERE
         )
 
 
+26
+SELECT
+  good_type_name
+FROM
+  GoodTypes
+WHERE
+  good_type_id NOT IN (SELECT
+                          type
+                        FROM
+                          GoodTypes gt
+                          INNER JOIN Goods ON good_type_id = type
+                          INNER JOIN Payments ON good_id = good
+                        WHERE
+                          YEAR(date) = 2005);
+
+
 29
 SELECT
   DISTINCT name
