@@ -273,6 +273,20 @@ WHERE
                           YEAR(date) = 2005);
 
 
+27
+SELECT
+  good_type_name,
+  SUM(amount * unit_price) costs
+FROM
+  GoodTypes
+  INNER JOIN Goods ON good_type_id = type
+  INNER JOIN Payments ON good_id = good
+WHERE
+  YEAR(date) = 2005
+GROUP BY
+  good_type_id
+
+
 29
 SELECT
   DISTINCT name
