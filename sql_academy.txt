@@ -273,20 +273,6 @@ WHERE
                           YEAR(date) = 2005);
 
 
-27
-SELECT
-  good_type_name,
-  SUM(amount * unit_price) costs
-FROM
-  GoodTypes
-  INNER JOIN Goods ON good_type_id = type
-  INNER JOIN Payments ON good_id = good
-WHERE
-  YEAR(date) = 2005
-GROUP BY
-  good_type_id
-
-
 29
 SELECT
   DISTINCT name
@@ -297,6 +283,44 @@ FROM
 WHERE
   town_to = 'Moscow'
   AND plane = 'TU-134'
+
+
+30
+SELECT
+  trip,
+  COUNT(passenger) count
+FROM
+  Pass_in_trip
+GROUP BY
+  trip
+ORDER BY
+  count DESC
+
+
+31
+SELECT
+  *
+FROM
+  FamilyMembers
+WHERE
+  member_name LIKE '%Quincey%'
+
+
+32 не решил!!! правильный ответ - 45,а мой - 46
+SELECT
+  FLOOR(AVG(DATEDIFF(CURDATE(), birthday)) / 365.25) as age
+FROM
+  FamilyMembers
+
+
+33
+SELECT
+  AVG(unit_price) cost
+FROM
+  Payments
+  INNER JOIN Goods ON good = good_id
+WHERE
+  good_name LIKE '%caviar%'
 
 
 34
