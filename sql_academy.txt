@@ -329,10 +329,26 @@ FROM Class
 WHERE name LIKE '10%'
 
 
+35
+SELECT
+  COUNT(DISTINCT classroom) as count
+FROM
+  Schedule
+WHERE
+  date = '2019-09-02'
+
+
 36
 SELECT *
 FROM Student
 WHERE address LIKE 'ul. Pushkina%'
+
+
+37
+SELECT
+  FLOOR(DATEDIFF(NOW(), MAX(birthday)) / 365.25) year
+FROM
+  Student
 
 
 38
