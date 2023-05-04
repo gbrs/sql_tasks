@@ -364,10 +364,44 @@ INNER JOIN Student_in_class ON Student_in_class.class = Class.id
 WHERE name = '10 B'
 
 
+40
+SELECT
+  sub.name subjects
+FROM
+  Schedule sch
+  INNER JOIN Teacher tch ON tch.id = sch.teacher
+  INNER JOIN Subject sub ON sub.id = sch.subject
+WHERE
+  tch.last_name = 'Romashkin'
+  AND tch.middle_name LIKE 'P%'
+  AND tch.first_name LIKE 'P%'
+
+
 41
 SELECT start_pair
 FROM Timepair
 WHERE id = 4
+
+
+42
+SELECT
+  TIMEDIFF(
+    (SELECT end_pair FROM Timepair WHERE id = 4),
+    (SELECT start_pair FROM Timepair WHERE id = 2)
+  ) AS time
+
+
+43
+SELECT
+   tch.last_name last_name
+FROM
+  Schedule sch
+  INNER JOIN Teacher tch ON tch.id = sch.teacher
+  INNER JOIN Subject sub ON sub.id = sch.subject
+WHERE
+  sub.name = 'Physical Culture'
+ORDER BY
+  last_name
 
 
 53
