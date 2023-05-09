@@ -404,6 +404,67 @@ ORDER BY
   last_name
 
 
+48
+SELECT
+  cls.name,
+  COUNT(std.id) AS count
+FROM
+  Class cls
+  INNER JOIN Student_in_class sic ON cls.id = sic.class
+  INNER JOIN Student std ON std.id = sic.student
+GROUP BY
+  class
+ORDER BY
+  count DESC
+
+
+49
+SELECT
+
+  (SELECT
+    COUNT(std.id) count_10_A
+  FROM
+    Class cls
+    INNER JOIN Student_in_class sic ON cls.id = sic.class
+    INNER JOIN Student std ON std.id = sic.student
+  WHERE
+    cls.name = '10 A'
+  )
+
+  /
+
+  (SELECT
+    COUNT(std.id) total
+  FROM
+    Class cls
+    INNER JOIN Student_in_class sic ON cls.id = sic.class
+    INNER JOIN Student std ON std.id = sic.student)
+
+  * 100 AS percent
+
+
+50
+SELECT
+  FLOOR(
+    100 *
+
+    (SELECT
+      COUNT(*)
+    FROM
+      Student
+    WHERE
+      YEAR(birthday) = 2000)
+
+    /
+
+    (SELECT
+      COUNT(*)
+    FROM
+      Student)
+
+  ) percent
+
+
 53
 UPDATE FamilyMembers
 SET member_name = 'Andie Anthony'
@@ -414,5 +475,13 @@ WHERE member_name = 'Andie Quincey'
 DELETE FROM Trip
 WHERE town_from = 'Moscow'
 
+
+59
+SELECT
+  *
+FROM
+  Users
+WHERE
+  phone_number LIKE '%+375%'
 
 
