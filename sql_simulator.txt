@@ -407,61 +407,13 @@ from
   products
 
 
-5.4
-select
-  COUNT(DISTINCT user_id) unique_users,
-  COUNT(DISTINCT order_id) unique_orders,
-  ROUND(COUNT(DISTINCT order_id)::DECIMAL / COUNT(DISTINCT user_id), 2) orders_per_user
-from
-  user_actions
-
-
-5.5
-select count(courier_id) couriers_count
+5.6
+select count(courier_id) couriers
 from couriers
 where sex = 'female'
 
 
-5.6
-SELECT
-  COUNT(product_ids) orders_count
-FROM
-  orders
-WHERE
-  array_length(product_ids, 1) >= 9
-
-
-5.7
-SELECT
-  AVG(price) avg_price
-FROM
-  products
-WHERE
-  (name LIKE '%чай%'
-  OR name LIKE '%кофе%')
-  AND name NOT LIKE '%чайный гриб%'
-  AND name NOT LIKE '%иван-чай%'
-
-
 5.8
-SELECT
-  MIN(AGE(birth_date))::VARCHAR min_age
-FROM
-  couriers
-WHERE
-  sex = 'male'
-
-
-5.9
-SELECT
-  MAX(AGE(birth_date)) - MIN(AGE(birth_date)) age_diff
-FROM
-  users
-WHERE
-  sex = 'male'
-
-
-5.10
 SELECT
   SUM(price) order_price
 FROM
@@ -470,6 +422,24 @@ WHERE
   name = 'сухарики'
   OR name = 'чипсы'
   OR name = 'энергетический напиток'
+
+
+5.9
+SELECT
+  COUNT(product_ids) orders
+FROM
+  orders
+WHERE
+  array_length(product_ids, 1) >= 9
+
+
+5.10
+SELECT
+  MIN(AGE(birth_date))::VARCHAR min_age
+FROM
+  couriers
+WHERE
+  sex = 'male'
 
 
 5.11
@@ -486,6 +456,36 @@ FROM
 
 
 5.12
+SELECT
+  ROUND(AVG(price), 2) avg_price
+FROM
+  products
+WHERE
+  (name LIKE '%чай%'
+  OR name LIKE '%кофе%')
+  AND name NOT LIKE '%чайный гриб%'
+  AND name NOT LIKE '%иван-чай%'
+
+
+5.13
+SELECT
+  (AGE(MAX(birth_date), MIN(birth_date)))::VARCHAR age_diff
+FROM
+  users
+WHERE
+  sex = 'male'
+
+
+5.15
+select
+  COUNT(DISTINCT user_id) unique_users,
+  COUNT(DISTINCT order_id) unique_orders,
+  ROUND(COUNT(DISTINCT order_id)::DECIMAL / COUNT(DISTINCT user_id), 2) orders_per_user
+from
+  user_actions
+
+
+5.16
 SELECT
   COUNT(DISTINCT user_id) - COUNT(DISTINCT user_id) FILTER (WHERE action = 'cancel_order') users_count
 FROM
