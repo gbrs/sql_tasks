@@ -407,10 +407,36 @@ from
   products
 
 
+5.4
+SELECT
+  COUNT(*) dates,
+  COUNT(birth_date) dates_not_null
+FROM
+  users
+
+
+5.5
+SELECT
+  COUNT(user_id) users,
+  COUNT(DISTINCT user_id) unique_users
+FROM
+  user_actions
+
+
 5.6
 select count(courier_id) couriers
 from couriers
 where sex = 'female'
+
+
+5.7
+SELECT
+  min(time) as first_delivery,
+  max(time) as last_delivery
+FROM
+  courier_actions
+WHERE
+  action = 'deliver_order'
 
 
 5.8
