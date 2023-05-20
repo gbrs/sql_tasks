@@ -502,6 +502,15 @@ WHERE
   sex = 'male'
 
 
+5.14
+SELECT
+  ROUND(AVG(ARRAY_LENGTH(product_ids, 1)), 2) avg_order_size
+FROM
+  orders
+WHERE
+  EXTRACT(DOW from creation_time) IN (0, 6)
+
+
 5.15
 select
   COUNT(DISTINCT user_id) unique_users,
@@ -516,6 +525,15 @@ SELECT
   COUNT(DISTINCT user_id) - COUNT(DISTINCT user_id) FILTER (WHERE action = 'cancel_order') users_count
 FROM
   user_actions
+
+
+5.17
+SELECT
+  COUNT(DISTINCT order_id) orders,
+  COUNT(DISTINCT order_id) FILTER(WHERE ARRAY_LENGTH(product_ids, 1) >= 5) large_orders,
+  ROUND(1.0 * COUNT(DISTINCT order_id) FILTER(WHERE ARRAY_LENGTH(product_ids, 1) >= 5) / COUNT(DISTINCT order_id), 2) large_orders_share
+FROM
+  orders
 
 ------------------------------------------
 
