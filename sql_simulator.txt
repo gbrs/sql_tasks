@@ -622,63 +622,99 @@ ORDER BY couriers_count
 
 
 6.2
+SELECT action, COUNT(*) orders_count
+FROM user_actions
+GROUP BY action
+
+
+6.3
+SELECT DATE_TRUNC('month', creation_time) as month, COUNT(*) as orders_count
+FROM orders
+GROUP BY 1
+ORDER BY 1
+
+
+6.4
+SELECT DATE_TRUNC('month', time) as month, action, COUNT(*) orders_count
+FROM user_actions
+GROUP BY 1, 2
+ORDER BY 1, 2
+
+
+6.5
+SELECT sex, MAX(DATE_PART('month', birth_date))::INTEGER max_month
+FROM users
+GROUP BY sex
+ORDER BY sex
+
+
+6.6
+SELECT sex, DATE_PART('month', MAX(birth_date))::INTEGER max_month
+FROM users
+GROUP BY sex
+ORDER BY sex
+
+
+6.7
 /*
 MAX(birth_date) выдаст самого молодого.
 */
-SELECT sex, MAX(DATE_PART('year', AGE(birth_date))) max_age
+SELECT sex, MAX(DATE_PART('year', AGE(birth_date)))::INTEGER max_age
 FROM users
 GROUP BY sex
 ORDER BY max_age
 
 
-6.3
-SELECT DATE_PART('year', AGE(birth_date)) age, COUNT(*) users_count
+6.8
+SELECT DATE_PART('year', AGE(birth_date))::INTEGER age, COUNT(*) users_count
 FROM users
 GROUP BY age
 ORDER BY age
 
 
-6.4
-SELECT DATE_PART('year', AGE(birth_date)) age, sex, COUNT(*) users_count
+6.9
+SELECT DATE_PART('year', AGE(birth_date))::INTEGER age, sex, COUNT(*) users_count
 FROM users
 WHERE birth_date IS NOT NULL
 GROUP BY age, sex
-ORDER BY age
+ORDER BY age, sex
 
 
-6.5
+*6.5
 SELECT DATE_TRUNC('month', time) AS month, action, COUNT(*) orders_count
 FROM user_actions
 GROUP BY month, action
 ORDER BY month, action
 
 
-6.6
+6.10
 SELECT array_length(product_ids, 1) order_size, COUNT(*) orders_count
 FROM orders
+WHERE creation_time BETWEEN '2022-08-29' AND '2022-09-05'
 GROUP BY order_size
 ORDER BY order_size
 
 
-6.7
+6.11
 SELECT array_length(product_ids, 1) order_size, COUNT(*) orders_count
 FROM orders
+WHERE EXTRACT(DOW from creation_time) NOT IN (0, 6)
 GROUP BY order_size
-HAVING COUNT(*) > 5000
+HAVING COUNT(*) > 2000
 ORDER BY order_size
 
 
-6.8
-SELECT courier_id, COUNT(order_id) delivered_orders
-FROM courier_actions
-WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
-GROUP BY courier_id
-ORDER BY delivered_orders DESC
+6.12
+SELECT user_id, COUNT(order_id) created_orders
+FROM user_actions
+WHERE action = 'create_order' AND DATE_PART('month', time) = 8
+GROUP BY user_id
+ORDER BY created_orders DESC, user_id
 LIMIT 5
 
 
-6.9
-SELECT courier_id, COUNT(order_id) delivered_orders
+6.13
+SELECT courier_id
 FROM courier_actions
 WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
 GROUP BY courier_id
@@ -686,7 +722,7 @@ HAVING COUNT(order_id) = 1
 ORDER BY courier_id
 
 
-6.10
+6.14
 SELECT user_id
 FROM user_actions
 WHERE action = 'create_order'
@@ -695,22 +731,22 @@ HAVING MAX(time) < '2022-09-08'
 ORDER BY user_id
 
 
-6.11
+6.15
 SELECT
-  user_id,
-  ROUND(
-      COUNT(*) FILTER (WHERE action = 'cancel_order')
-          / CAST(COUNT(DISTINCT order_id) AS DECIMAL)
-  , 2) AS cancel_rate
+  CASE
+    WHEN EXTRACT(DOW from creation_time) IN (0, 6) THEN 'weekend'
+    ELSE 'weekdays'
+    END week_part,
+  ROUND(AVG(array_length(product_ids, 1)), 2) avg_order_size
 FROM
-  user_actions
+  orders
 GROUP BY
-  user_id
+  week_part
 ORDER BY
-  cancel_rate DESC
+  avg_order_size
 
 
-6.12
+6.16
 /*
 "Ваши расчеты могут отличаться от ожидаемого результата,
 так как время не стоит на месте".
@@ -731,6 +767,26 @@ GROUP BY
   group_age
 ORDER BY
   group_age
+
+
+6.17
+SELECT
+  user_id,
+  COUNT(*) FILTER (WHERE action = 'create_order') orders_count ,
+  ROUND(
+      COUNT(*) FILTER (WHERE action = 'cancel_order')
+          / CAST(COUNT(DISTINCT order_id) AS DECIMAL)
+  , 2) AS cancel_rate
+FROM
+  user_actions
+GROUP BY
+  user_id
+HAVING
+  COUNT(*) FILTER (WHERE action = 'create_order') > 3
+  AND COUNT(*) FILTER (WHERE action = 'cancel_order') / CAST(COUNT(DISTINCT order_id) AS DECIMAL) >= 0.5
+ORDER BY
+  user_id
+
 
 
 ------------------------------------
