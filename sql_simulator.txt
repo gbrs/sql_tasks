@@ -789,6 +789,27 @@ ORDER BY
   user_id
 
 
+6.18
+SELECT
+  DATE_PART('isodow', time)::INT weekday_number,
+  TO_CHAR(time, 'Dy') weekday,
+  COUNT(DISTINCT order_id) FILTER(WHERE action = 'create_order') created_orders,
+  COUNT(DISTINCT order_id) FILTER(WHERE action = 'cancel_order') canceled_orders,
+  COUNT(DISTINCT order_id) FILTER(WHERE action = 'create_order')
+    - COUNT(DISTINCT order_id) FILTER(WHERE action = 'cancel_order') actual_orders,
+  ROUND(1.0 * (COUNT(DISTINCT order_id) FILTER(WHERE action = 'create_order')
+    - COUNT(DISTINCT order_id) FILTER(WHERE action = 'cancel_order'))
+    / COUNT(DISTINCT order_id) FILTER(WHERE action = 'create_order'), 3) success_rate
+FROM
+  user_actions
+WHERE
+  time BETWEEN '2022-08-24' and '2022-09-07'
+GROUP BY
+  weekday_number,
+  weekday
+ORDER BY
+  weekday_number
+
 
 ------------------------------------
 
