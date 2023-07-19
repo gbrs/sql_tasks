@@ -306,11 +306,9 @@ WHERE
   member_name LIKE '%Quincey%'
 
 
-32 не решил!!! правильный ответ - 45,а мой - 46
-SELECT
-  FLOOR(AVG(DATEDIFF(CURDATE(), birthday)) / 365.25) as age
-FROM
-  FamilyMembers
+32
+SELECT FLOOR(AVG(TIMESTAMPDIFF(YEAR, birthday, CURDATE()))) as age
+FROM FamilyMembers
 
 
 33
