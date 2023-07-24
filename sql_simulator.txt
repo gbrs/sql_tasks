@@ -1959,7 +1959,7 @@ WITH intervals AS (
 
 SELECT
   user_id,
-  ROUND(EXTRACT(epoch FROM AVG(time_between_orders)) / 3600) hours_between_orders
+  ROUND(EXTRACT(epoch FROM AVG(time_between_orders)) / 3600)::INT hours_between_orders
 FROM
   intervals
 WHERE
@@ -1968,6 +1968,8 @@ GROUP BY
   user_id
 ORDER BY
   user_id
+LIMIT
+  1000
 
 
 9.8
