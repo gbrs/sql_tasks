@@ -483,3 +483,40 @@ WHERE
   phone_number LIKE '%+375%'
 
 
+61
+НЕ РЕШИЛ!!!!!!!!
+SELECT
+  rm.*,
+  re.end_date,
+  re.start_date,
+  (re.end_date - re.start_date) / 60 / 60 / 24,
+  WEEK(re.start_date),
+  WEEK(re.end_date)
+FROM
+  Rooms rm
+  JOIN Reservations re
+WHERE
+  WEEK(re.start_date) <= 12
+  AND WEEK(re.end_date) >= 12
+  AND (YEAR(re.start_date) = 2020 OR YEAR(re.end_date) = 2020)
+
+74
+SELECT
+  id,
+  CASE WHEN has_internet= 1 THEN 'YES' ELSE 'NO' END AS has_internet
+FROM
+  Rooms
+
+
+75
+SELECT
+  last_name,
+  first_name,
+  birthday
+FROM
+  Student
+WHERE
+  MONTH(birthday) = 5
+
+
+
