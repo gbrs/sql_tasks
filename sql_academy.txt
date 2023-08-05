@@ -500,6 +500,44 @@ WHERE
   AND WEEK(re.end_date) >= 12
   AND (YEAR(re.start_date) = 2020 OR YEAR(re.end_date) = 2020)
 
+
+62
+SELECT
+  RIGHT(email, LENGTH(email) - LOCATE('@', email)) domain,
+  COUNT(*) count
+FROM
+  Users
+GROUP BY
+  domain
+ORDER BY
+  count DESC,
+  domain
+
+
+63
+SELECT
+  CONCAT(last_name , '.', LEFT(first_name, 1), '.') name
+FROM
+  Student
+ORDER BY
+  name
+
+
+64
+SELECT
+  YEAR(start_date) as year,
+  MONTH(start_date) as month,
+  COUNT(*) as amount
+FROM
+  Reservations
+GROUP BY
+  year,
+  month
+ORDER BY
+  year,
+  month
+
+
 74
 SELECT
   id,
