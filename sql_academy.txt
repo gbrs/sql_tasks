@@ -538,6 +538,36 @@ ORDER BY
   month
 
 
+65
+SELECT
+  rm.id room_id,
+  FLOOR(AVG(rev.rating)) rating
+FROM
+  Rooms rm
+  INNER JOIN Reservations res ON rm.id = res.room_id
+  INNER JOIN Reviews rev ON res.id = rev.reservation_id
+GROUP BY
+  rm.id
+
+
+66
+SELECT
+  rm.home_type,
+  rm.address,
+  COALESCE(SUM(DATEDIFF(res.end_date, res.start_date)), 0) as days,
+  COALESCE(SUM(res.total), 0) as total_fee
+FROM
+  Rooms rm
+  LEFT JOIN Reservations res ON rm.id = res.room_id
+WHERE
+  rm.has_tv = 1
+  AND rm.has_internet = 1
+  AND rm.has_kitchen = 1
+  AND rm.has_air_con = 1
+GROUP BY
+  rm.id
+
+
 74
 SELECT
   id,
