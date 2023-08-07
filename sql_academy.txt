@@ -587,6 +587,20 @@ FROM
   Trip
 
 
+70
+SELECT
+  CASE
+    WHEN price <= 100 THEN 'economy'
+    WHEN price >= 200 THEN 'premium'
+    ELSE 'comfort'
+  END category,
+  COUNT(*) count
+FROM
+  Rooms
+GROUP BY
+  category
+
+
 74
 SELECT
   id,
