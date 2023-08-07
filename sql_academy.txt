@@ -568,6 +568,25 @@ GROUP BY
   rm.id
 
 
+67
+SELECT
+  CONCAT(
+    LEFT(TIME(time_out), 5),
+    ', ',
+    DAY(time_out),
+    '.',
+    MONTH(time_out),
+    ' - ',
+    LEFT(TIME(time_in), 5),
+    ', ',
+    DAY(time_in),
+    '.',
+    MONTH(time_in)
+  ) flight_time
+FROM
+  Trip
+
+
 74
 SELECT
   id,
