@@ -601,6 +601,30 @@ GROUP BY
   category
 
 
+72
+SELECT
+  res.room_id,
+  CEIL(AVG(res.price)) avg_price
+FROM
+  Reservations res
+  INNER JOIN Rooms rm ON res.room_id = rm.id
+GROUP BY
+  res.room_id
+
+
+73
+SELECT
+  res.room_id,
+  COUNT(*) count
+FROM
+  Reservations res
+  INNER JOIN Rooms rm ON res.room_id = rm.id
+GROUP BY
+  res.room_id
+HAVING
+  MOD(COUNT(*), 2) = 1
+
+
 74
 SELECT
   id,
@@ -620,4 +644,11 @@ WHERE
   MONTH(birthday) = 5
 
 
+76
+SELECT
+  name,
+  IF (id in (SELECT owner_id FROM Rooms), 1, 0) is_owner,
+  IF (id in (SELECT user_id FROM Reservations), 1, 0) is_tenant
+FROM
+  Users
 
