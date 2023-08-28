@@ -389,6 +389,17 @@ SELECT
   ) AS time
 
 
+44
+SELECT
+  TIMESTAMPDIFF(YEAR, MIN(std.birthday), NOW()) as max_year
+FROM
+  Student std
+  INNER JOIN Student_in_class sic ON std.id = sic.student
+  INNER JOIN Class cls ON sic.class = cls.id
+WHERE
+  cls.name LIKE '10 _'
+
+
 43
 SELECT
    tch.last_name last_name
