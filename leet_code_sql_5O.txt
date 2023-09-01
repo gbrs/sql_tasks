@@ -1,4 +1,16 @@
-'Select' 3
+'Basic Joins' +
+
+570. Managers with at Least 5 Direct Reports
+SELECT
+  e1.name
+FROM
+  Employee e1
+  INNER JOIN Employee e2 ON e2.managerId = e1.id
+GROUP BY
+  e1.id
+HAVING
+  COUNT(*) >= 5
+
 
 595. Big Countries
 SELECT
@@ -21,6 +33,25 @@ WHERE
   author_id = viewer_id
 ORDER BY
   id
+
+
+1280. Students and Examinations
+SELECT
+  student_id,
+  student_name,
+  subject_name,
+  COUNT(Examinations.subject_name) AS attended_exams
+FROM
+  Students
+  CROSS JOIN Subjects
+  LEFT JOIN Examinations USING (student_id, subject_name)
+GROUP BY
+  student_id,
+  student_name,
+  subject_name
+ORDER BY
+  student_id,
+  subject_name
 
 
 1378. Replace Employee ID With The Unique Identifier
