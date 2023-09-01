@@ -23,6 +23,15 @@ ORDER BY
   id
 
 
+1378. Replace Employee ID With The Unique Identifier
+SELECT
+  unique_id,
+  name
+FROM
+  Employees
+  LEFT JOIN EmployeeUNI USING(id)
+
+
 1683. Invalid Tweets
 SELECT
   tweet_id
