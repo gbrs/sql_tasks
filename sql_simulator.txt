@@ -987,49 +987,6 @@ LIMIT
 
 
 7.9
-WITH last_order_id AS (
-  SELECT order_id
-  FROM courier_actions
-  WHERE action = 'deliver_order'
-  ORDER BY time DESC
-  LIMIT 100
-)
-
-SELECT order_id, product_ids
-FROM orders
-WHERE order_id IN (SELECT order_id FROM last_order_id)
-ORDER BY order_id
-
-
-7.10
-WITH actions AS (
-  SELECT courier_id, count(*) cnt
-  FROM courier_actions
-  WHERE time >= '2022-09-01' AND action = 'deliver_order'
-  GROUP BY courier_id
-)
-
-SELECT courier_id, birth_date, sex
-FROM couriers
-WHERE courier_id IN (SELECT courier_id FROM actions WHERE cnt >= 30)
-ORDER BY courier_id
-
-
-7.10-2
-WITH actions AS (
-  SELECT courier_id, count(*) cnt
-  FROM courier_actions
-  WHERE time >= '2022-09-01' AND action = 'deliver_order'
-  GROUP BY courier_id
-)
-
-SELECT courier_id, birth_date, sex
-FROM couriers
-WHERE EXISTS (SELECT * FROM actions WHERE cnt >= 30 AND actions.courier_id = couriers.courier_id)
-ORDER BY courier_id
-
-
-7.11
 WITH average_price AS (
   SELECT
     ROUND(AVG(price), 2)
@@ -1053,61 +1010,100 @@ ORDER BY
   price DESC
 
 
+7.10
+SELECT COUNT(*) orders_count
+FROM (
+    SELECT order_id
+    FROM courier_actions
+    WHERE action = 'accept_order'
+
+    EXCEPT
+
+    SELECT order_id
+    FROM user_actions
+    WHERE action = 'create_order'
+) t
+
+
+7.11
+SELECT COUNT(*) orders_count
+FROM (
+    SELECT order_id
+    FROM courier_actions
+    WHERE action = 'accept_order'
+
+    EXCEPT
+
+    SELECT order_id
+    FROM courier_actions
+    WHERE action = 'deliver_order'
+) t
+
+
 7.12
-SELECT creation_time, order_id, product_ids, UNNEST(product_ids) product_id
-FROM orders
-LIMIT 100
+WITH orders_canceled_list AS(
+    SELECT
+        order_id
+    FROM
+        user_actions
+    WHERE
+        action = 'cancel_order'
+)
 
-
-7.13
-SELECT UNNEST(product_ids) product_id, COUNT(*) times_purchased
-FROM orders
-GROUP BY product_id
-ORDER BY times_purchased DESC
-LIMIT 10
-
-
-7.14
-WITH
-  goods AS (
-    SELECT order_id, product_ids, UNNEST(product_ids) product_id
-    FROM orders
-  ),
-
-  expensive AS (
-    SELECT product_id
-    FROM products
-    ORDER BY price DESC
-    LIMIT 5
-  )
-
-SELECT DISTINCT order_id, product_ids
-FROM goods
-WHERE product_id IN (SELECT product_id  FROM expensive)
-ORDER BY order_id
-
-
-7.14-2
-WITH
-  goods AS (
-    SELECT order_id, product_ids, UNNEST(product_ids) product_id
-    FROM orders
-  ),
-
-  expensive AS (
-    SELECT product_id
-    FROM products
-    ORDER BY price DESC
-    LIMIT 5
-  )
-
-SELECT DISTINCT order_id, product_ids
-FROM goods
-WHERE EXISTS (SELECT product_id  FROM expensive WHERE goods.product_id = expensive.product_id)
-ORDER BY order_id
+SELECT
+    (SELECT COUNT(order_id) FROM orders_canceled_list) orders_canceled,
+    COUNT(order_id) orders_canceled_and_delivered
+FROM
+    courier_actions ca
+WHERE
+    action = 'deliver_order'
+    AND EXISTS (SELECT * FROM orders_canceled_list ocl WHERE ocl.order_id = ca.order_id)
 
 
 7.15
+WITH last_order_id AS (
+  SELECT order_id
+  FROM courier_actions
+  WHERE action = 'deliver_order'
+  ORDER BY time DESC
+  LIMIT 100
+)
+
+SELECT order_id, product_ids
+FROM orders
+WHERE order_id IN (SELECT order_id FROM last_order_id)
+ORDER BY order_id
+
+
+7.16
+WITH actions AS (
+  SELECT courier_id, count(*) cnt
+  FROM courier_actions
+  WHERE time >= '2022-09-01' AND action = 'deliver_order'
+  GROUP BY courier_id
+)
+
+SELECT courier_id, birth_date, sex
+FROM couriers
+WHERE courier_id IN (SELECT courier_id FROM actions WHERE cnt >= 30)
+ORDER BY courier_id
+
+
+7.16-2
+WITH actions AS (
+  SELECT courier_id, count(*) cnt
+  FROM courier_actions
+  WHERE time >= '2022-09-01' AND action = 'deliver_order'
+  GROUP BY courier_id
+)
+
+SELECT courier_id, birth_date, sex
+FROM couriers
+WHERE EXISTS (SELECT * FROM actions WHERE cnt >= 30 AND actions.courier_id = couriers.courier_id)
+ORDER BY courier_id
+
+
+7.18
 WITH
   last_times AS (
     SELECT MAX(time) last_time
@@ -1133,7 +1129,7 @@ FROM ages
 ORDER BY user_id
 
 
-7.15-2
+7.18-2
 WITH
   ages AS (
     SELECT
@@ -1147,6 +1143,62 @@ SELECT
   COALESCE (age, (SELECT ROUND(AVG(age)) FROM ages)) age
 FROM ages
 ORDER BY user_id
+
+
+7.21
+SELECT creation_time, order_id, product_ids, UNNEST(product_ids) product_id
+FROM orders
+LIMIT 100
+
+
+7.22
+SELECT UNNEST(product_ids) product_id, COUNT(*) times_purchased
+FROM orders
+GROUP BY product_id
+ORDER BY times_purchased DESC
+LIMIT 10
+
+
+7.23
+WITH
+  goods AS (
+    SELECT order_id, product_ids, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+
+  expensive AS (
+    SELECT product_id
+    FROM products
+    ORDER BY price DESC
+    LIMIT 5
+  )
+
+SELECT DISTINCT order_id, product_ids
+FROM goods
+WHERE product_id IN (SELECT product_id  FROM expensive)
+ORDER BY order_id
+
+
+7.23-2
+WITH
+  goods AS (
+    SELECT order_id, product_ids, UNNEST(product_ids) product_id
+    FROM orders
+  ),
+
+  expensive AS (
+    SELECT product_id
+    FROM products
+    ORDER BY price DESC
+    LIMIT 5
+  )
+
+SELECT DISTINCT order_id, product_ids
+FROM goods
+WHERE EXISTS (SELECT product_id  FROM expensive WHERE goods.product_id = expensive.product_id)
+ORDER BY order_id
+
+
 
 --------------------------
 
