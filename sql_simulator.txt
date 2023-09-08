@@ -1060,6 +1060,34 @@ WHERE
     AND EXISTS (SELECT * FROM orders_canceled_list ocl WHERE ocl.order_id = ca.order_id)
 
 
+7.13
+WITH
+    orders_canceled_list AS(
+        SELECT
+            order_id
+        FROM
+            user_actions
+        WHERE
+            action = 'cancel_order'
+    ),
+
+    orders_undelivered_list AS(
+        SELECT
+            order_id
+        FROM
+            courier_actions ca
+        GROUP BY
+            order_id
+        HAVING
+            COUNT(*) = 1
+    )
+
+SELECT
+    (SELECT COUNT(order_id) FROM orders_undelivered_list) orders_undelivered,
+    (SELECT COUNT(order_id) FROM orders_canceled_list) orders_canceled,
+    (SELECT COUNT(order_id) FROM orders_undelivered_list) - (SELECT COUNT(order_id) FROM orders_canceled_list) orders_in_process
+
+
 7.15
 WITH last_order_id AS (
   SELECT order_id
