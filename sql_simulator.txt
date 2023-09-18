@@ -1088,6 +1088,18 @@ SELECT
     (SELECT COUNT(order_id) FROM orders_undelivered_list) - (SELECT COUNT(order_id) FROM orders_canceled_list) orders_in_process
 
 
+7.14
+SELECT
+  user_id, birth_date
+FROM
+  users
+WHERE
+  sex = 'male'
+  AND birth_date < (SELECT MIN(birth_date) FROM users WHERE sex = 'female')
+ORDER BY
+  user_id
+
+
 7.15
 WITH last_order_id AS (
   SELECT order_id
