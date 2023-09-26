@@ -1143,6 +1143,25 @@ WHERE EXISTS (SELECT * FROM actions WHERE cnt >= 30 AND actions.courier_id = cou
 ORDER BY courier_id
 
 
+7.17
+WITH order_sizes AS (
+    SELECT
+      ARRAY_LENGTH(product_ids, 1) order_size
+    FROM
+        orders o
+        INNER JOIN user_actions USING (order_id)
+        INNER JOIN users USING (user_id)
+    WHERE
+        sex = 'male'
+        AND EXISTS (SELECT * FROM user_actions ua WHERE action = 'cancel_order' AND o.order_id = ua.order_id)
+)
+
+SELECT
+    ROUND(AVG(order_size), 3) avg_order_size
+FROM
+    order_sizes
+
+
 7.18
 WITH
   last_times AS (
