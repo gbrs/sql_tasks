@@ -1197,6 +1197,25 @@ FROM ages
 ORDER BY user_id
 
 
+7.19
+SELECT
+  order_id,
+  MIN(time) time_accepted,
+  MAX(time) time_delivered ,
+  ROUND(EXTRACT(EPOCH FROM MAX(time) - MIN(time)) / 60)::INT delivery_time
+FROM
+  courier_actions
+  INNER JOIN orders USING (order_id)
+WHERE
+  ARRAY_LENGTH(product_ids, 1) > 5
+GROUP BY
+  order_id
+HAVING
+  COUNT(*) > 1
+ORDER BY
+  order_id
+
+
 7.21
 SELECT creation_time, order_id, product_ids, UNNEST(product_ids) product_id
 FROM orders
