@@ -1216,6 +1216,31 @@ ORDER BY
   order_id
 
 
+7.20
+WITH not_canceled_orders AS (
+    SELECT
+        min(time)::DATE date
+    FROM
+        user_actions ua1
+    WHERE
+        NOT EXISTS (SELECT order_id FROM user_actions ua2 WHERE ua2.action = 'cancel_order' and ua1.order_id = ua2.order_id)
+    GROUP BY
+        ua1.user_id
+    ORDER BY
+        user_id
+)
+
+SELECT
+    date,
+    COUNT(*) first_orders
+FROM
+    not_canceled_orders
+GROUP BY
+    date
+ORDER BY
+    date
+
+
 7.21
 SELECT creation_time, order_id, product_ids, UNNEST(product_ids) product_id
 FROM orders
