@@ -24,6 +24,28 @@ WHERE
   OR population >= 25000000
 
 
+620. Not Boring Movies
+SELECT
+  *
+FROM
+  Cinema
+WHERE
+  id % 2 = 1
+  and description != 'boring'
+ORDER BY
+  rating DESC
+
+
+1068. Product Sales Analysis I
+SELECT
+  product_name,
+  year,
+  price
+FROM
+  Sales
+  INNER JOIN Product USING (product_id)
+
+
 1148. Article Views I
 SELECT
   DISTINCT author_id id
