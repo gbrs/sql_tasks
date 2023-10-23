@@ -1,5 +1,5 @@
 Порешать те запросы, которые я решил в пандасе, чтоб не "путались"
-'Basic Joins' +
+'Sorting and Grouping' +
 
 
 570. Managers with at Least 5 Direct Reports
