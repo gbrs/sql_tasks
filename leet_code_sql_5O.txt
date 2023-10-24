@@ -117,6 +117,39 @@ WHERE
   AND recyclable = 'Y'
 
 
+1907. Count Salary Categories
+WITH
+  category_table as (
+    SELECT
+      *,
+      CASE
+        WHEN income < 20000 THEN "Low Salary"
+        WHEN income > 50000 THEN "High Salary"
+        ELSE "Average Salary"
+        END category
+    FROM
+      Accounts
+  ),
+
+  category_count as (
+    SELECT
+      category,
+      COUNT(*)
+    FROM
+      category_table
+    GROUP BY
+      category
+  ),
+
+  category_name as (
+    SELECT
+      "Low Salary",
+      "Average Salary",
+      "High Salary"
+      as category
+  )
+
+
 2356. Number of Unique Subjects Taught by Each Teacher
 SELECT
   teacher_id,
