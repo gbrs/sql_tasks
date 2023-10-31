@@ -98,6 +98,19 @@ FROM
   LEFT JOIN EmployeeUNI USING(id)
 
 
+1667. Fix Names in a Table
+SELECT
+  user_id,
+  CONCAT(
+      UPPER(SUBSTRING(`name`, 1, 1)),
+      LOWER(SUBSTRING(`name` FROM 2))
+  ) name
+FROM
+  Users
+ORDER BY
+  user_id
+
+
 1683. Invalid Tweets
 SELECT
   tweet_id
