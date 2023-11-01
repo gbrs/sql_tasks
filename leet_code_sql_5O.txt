@@ -98,6 +98,16 @@ FROM
   LEFT JOIN EmployeeUNI USING(id)
 
 
+1527. Patients With a Condition
+SELECT
+  *
+FROM
+  Patients
+WHERE
+  conditions LIKE 'DIAB1%'
+  or conditions LIKE '% DIAB1%'
+
+
 1667. Fix Names in a Table
 SELECT
   user_id,
