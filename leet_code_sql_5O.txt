@@ -2,6 +2,15 @@
 'Sorting and Grouping' +
 
 
+176. Second Highest Salary
+SELECT
+  MAX(salary) SecondHighestSalary
+FROM
+  Employee
+WHERE
+  salary != (SELECT MAX(salary) FROM Employee)
+
+
 196. Delete Duplicate Emails
 DELETE
   p1
