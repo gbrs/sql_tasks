@@ -118,6 +118,19 @@ FROM
   LEFT JOIN EmployeeUNI USING(id)
 
 
+1484. Group Sold Products By The Date
+SELECT
+  sell_date,
+  COUNT(DISTINCT product) num_sold,
+  CONCAT(DISTINCT product) products
+FROM
+  Activities
+GROUP BY
+  sell_date
+ORDER BY
+  sell_date
+
+
 1527. Patients With a Condition
 SELECT
   *
