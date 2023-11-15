@@ -131,6 +131,15 @@ ORDER BY
   sell_date
 
 
+1517. Find Users With Valid E-Mails
+SELECT
+  *
+FROM
+  Users
+WHERE
+  mail REGEXP '^[A-Za-z]{1}[_0-9a-zA-Z.-]*@leetcode\\.com$'
+
+
 1527. Patients With a Condition
 SELECT
   *
