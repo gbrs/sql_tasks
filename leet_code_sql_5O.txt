@@ -34,6 +34,16 @@ HAVING
   COUNT(*) >= 5
 
 
+584. Find Customer Referee
+SELECT
+  name
+FROM
+  Customer
+WHERE
+  referee_id  != 2
+  OR referee_id is NULL
+
+
 595. Big Countries
 SELECT
   name,
