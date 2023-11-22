@@ -160,6 +160,19 @@ WHERE
   or conditions LIKE '% DIAB1%'
 
 
+1581. Customer Who Visited but Did Not Make Any Transactions
+SELECT
+  v.customer_id,
+  COUNT(*) count_no_trans
+FROM
+  Visits v
+  LEFT JOIN Transactions t USING(visit_id)
+WHERE
+  amount IS NULL
+GROUP BY
+  v.customer_id
+
+
 1667. Fix Names in a Table
 SELECT
   user_id,
