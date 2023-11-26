@@ -89,6 +89,29 @@ FROM
   INNER JOIN Product USING (product_id)
 
 
+1075. Project Employees I
+SELECT
+  project_id,
+  ROUND(AVG(experience_years), 2) average_years
+FROM
+  Project
+  INNER JOIN Employee USING (employee_id)
+GROUP BY
+  project_id
+
+
+1141. User Activity for the Past 30 Days I
+SELECT
+  activity_date day,
+  COUNT(DISTINCT user_id) active_users
+FROM
+  Activity
+WHERE
+  activity_date BETWEEN '2019-07-27' - INTERVAL 29 DAY AND '2019-07-27'
+GROUP BY
+  activity_date
+
+
 1148. Article Views I
 SELECT
   DISTINCT author_id id
