@@ -22,6 +22,16 @@ WHERE
   AND p1.Id > p2.Id;
 
 
+197. Rising Temperature
+SELECT
+  w2.id
+FROM
+  Weather w1
+  INNER JOIN Weather w2
+    ON w1.recordDate + INTERVAL 1 DAY = w2.recordDate
+    AND w2.temperature > w1.temperature
+
+
 570. Managers with at Least 5 Direct Reports
 SELECT
   e1.name
@@ -231,6 +241,21 @@ FROM
   Tweets
 WHERE
   LENGTH(content) > 15
+
+
+1731. The Number of Employees Which Report to Each Employee
+SELECT
+  e1.employee_id,
+  e1.name,
+  COUNT(e2.employee_id) reports_count,
+  ROUND(AVG(e2.age)) average_age
+FROM
+  Employees e1
+  INNER JOIN Employees e2 ON e1.employee_id = e2.reports_to
+GROUP BY
+  e1.employee_id
+ORDER BY
+  e1.employee_id
 
 
 1757. Recyclable and Low Fat Products
