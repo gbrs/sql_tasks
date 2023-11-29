@@ -44,6 +44,18 @@ HAVING
   COUNT(*) >= 5
 
 
+577. Employee Bonus
+SELECT
+  name,
+  bonus
+FROM
+  Employee e
+  LEFT JOIN Bonus b USING (empId)
+WHERE
+  bonus < 1000
+  OR bonus IS NULL
+
+
 584. Find Customer Referee
 SELECT
   name
@@ -221,6 +233,65 @@ GROUP BY
   v.customer_id
 
 
+1633. Percentage of Users Attended a Contest
+SELECT
+  contest_id,
+  ROUND(100.0 * COUNT(DISTINCT user_id) / (SELECT COUNT(*) FROM Users), 2) percentage
+FROM
+  Users
+  INNER JOIN Register USING (user_id)
+GROUP BY
+  contest_id
+ORDER BY
+  percentage DESC,
+  contest_id
+
+
+1661. Average Time of Process per Machine
+WITH
+  start_times as (
+    SELECT
+      *
+    FROM
+      Activity
+    WHERE
+      activity_type = 'start'
+  ),
+
+  end_times as (
+    SELECT
+      *
+    FROM
+      Activity
+    WHERE
+      activity_type = 'end'
+  )
+
+SELECT
+  st.machine_id,
+  ROUND(AVG(et.timestamp - st.timestamp), 3) processing_time
+FROM
+  start_times st
+  INNER JOIN end_times et USING (machine_id, process_id)
+GROUP BY
+  st.machine_id
+
+
+1661-2. Average Time of Process per Machine
+SELECT
+  a1.machine_id,
+  ROUND(AVG(a2.timestamp - a1.timestamp), 3) processing_time
+FROM
+  Activity a1
+  INNER JOIN Activity a2
+    ON a1.machine_id = a2.machine_id
+    AND a1.process_id = a2.process_id
+    AND a1.activity_type = 'start'
+    AND a2.activity_type = 'end'
+GROUP BY
+  a1.machine_id
+
+
 1667. Fix Names in a Table
 SELECT
   user_id,
@@ -266,6 +337,32 @@ FROM
 WHERE
   low_fats = 'Y'
   AND recyclable = 'Y'
+
+
+1789. Primary Department for Each Employee
+(
+SELECT
+  employee_id,
+  MAX(department_id) department_id
+FROM
+  Employee
+GROUP BY
+  employee_id
+HAVING
+  COUNT(*) = 1
+)
+
+UNION
+
+(
+SELECT
+  employee_id,
+  department_id
+FROM
+  Employee
+WHERE
+  primary_flag = 'Y'
+)
 
 
 1907. Count Salary Categories
