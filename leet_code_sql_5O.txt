@@ -145,6 +145,30 @@ ORDER BY
   id
 
 
+1211. Queries Quality and Percentage
+-- MySQL
+SELECT
+  query_name,
+  ROUND(AVG(rating / position), 2) quality,
+  ROUND(100.0 * SUM(rating < 3) / COUNT(query_name), 2) poor_query_percentage
+FROM
+  Queries
+GROUP BY
+  query_name
+
+
+1211-2. Queries Quality and Percentage
+-- PosgreSQL
+SELECT
+  query_name,
+  ROUND(AVG(1.0 * rating / position), 2) quality,
+  ROUND(100.0 * COUNT(query_name) FILTER(WHERE rating < 3) / COUNT(query_name), 2) poor_query_percentage
+FROM
+  Queries
+GROUP BY
+  query_name
+
+
 1251. Average Selling Price
 SELECT
   p.product_id,
