@@ -89,6 +89,32 @@ HAVING
   COUNT(student) >= 5
 
 
+610. Triangle Judgement
+SELECT
+  *,
+  CASE
+    WHEN (x + y > z) AND (x < y + z) AND (x + z > y)
+    THEN 'Yes'
+    ELSE 'No'
+    END triangle
+FROM
+  Triangle
+
+
+619. Biggest Single Number
+SELECT
+  MAX(num) num
+FROM
+  (SELECT
+    num
+  FROM
+    MyNumbers
+  GROUP BY
+    num
+  HAVING
+    COUNT(*) = 1) t
+
+
 620. Not Boring Movies
 SELECT
   *
@@ -201,6 +227,21 @@ GROUP BY
 ORDER BY
   student_id,
   subject_name
+
+
+1327. List the Products Ordered in a Period
+SELECT
+  product_name,
+  SUM(unit) unit
+FROM
+  Products p
+  INNER JOIN Orders o USING(product_id)
+WHERE
+  order_date BETWEEN '2020-02-01' AND '2020-02-29'
+GROUP BY
+  product_id
+HAVING
+  SUM(unit) >= 100
 
 
 1378. Replace Employee ID With The Unique Identifier
@@ -420,6 +461,31 @@ WITH
       "High Salary"
       as category
   )
+
+
+1978. Employees Whose Manager Left the Company
+SELECT
+  employee_id
+FROM
+  Employees
+WHERE
+  salary < 30000
+  AND manager_id NOT IN (SELECT DISTINCT employee_id FROM Employees)
+ORDER BY
+  employee_id
+
+
+1978-2. Employees Whose Manager Left the Company
+SELECT
+  employee_id
+FROM
+  Employees e1
+WHERE
+  salary < 30000
+  AND NOT EXISTS (SELECT * FROM Employees e2 WHERE ((e1.manager_id = e2.employee_id) OR (e1.manager_id IS NULL)))
+ORDER BY
+  employee_id
+
 
 
 2356. Number of Unique Subjects Taught by Each Teacher
