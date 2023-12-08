@@ -127,6 +127,20 @@ ORDER BY
   rating DESC
 
 
+626. Exchange Seats
+SELECT
+  CASE
+    WHEN (SELECT MAX(id) FROM Seat) % 2 = 1 AND id = (SELECT MAX(id) FROM Seat) THEN id
+    WHEN id % 2 = 1 THEN id + 1
+    ELSE id - 1
+    END id,
+  student
+FROM
+  Seat
+ORDER BY
+  id
+
+
 1068. Product Sales Analysis I
 SELECT
   product_name,
