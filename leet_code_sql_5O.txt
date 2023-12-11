@@ -514,6 +514,52 @@ WITH
   )
 
 
+1934. Confirmation Rate
+WITH
+
+  full as (
+    SELECT
+      user_id,
+      COUNT(action) full_count
+    FROM
+      Signups
+      LEFT JOIN Confirmations USING(user_id)
+    GROUP BY
+      user_id
+  ),
+
+  conf as (
+    SELECT
+      user_id,
+      COUNT(action) conf_count
+    FROM
+      Signups
+      LEFT JOIN Confirmations USING(user_id)
+    WHERE
+      action = 'confirmed'
+    GROUP BY
+      user_id
+  )
+
+SELECT
+  user_id,
+  COALESCE(ROUND(1.0 * conf_count / full_count, 2), 0.00) confirmation_rate
+FROM
+  full
+  LEFT JOIN conf USING(user_id)
+
+
+1934-2. Confirmation Rate
+SELECT
+  user_id,
+  ROUND(AVG(IF(action = 'confirmed', 1, 0)), 2) confirmation_rate
+FROM
+  Signups
+  LEFT JOIN Confirmations USING(user_id)
+GROUP BY
+  user_id
+
+
 1978. Employees Whose Manager Left the Company
 SELECT
   employee_id
