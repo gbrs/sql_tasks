@@ -732,21 +732,6 @@ HAVING MAX(time) < '2022-09-08'
 ORDER BY user_id
 
 
-6.15
-SELECT
-  CASE
-    WHEN EXTRACT(DOW from creation_time) IN (0, 6) THEN 'weekend'
-    ELSE 'weekdays'
-    END week_part,
-  ROUND(AVG(array_length(product_ids, 1)), 2) avg_order_size
-FROM
-  orders
-GROUP BY
-  week_part
-ORDER BY
-  avg_order_size
-
-
 6.16
 /*
 "Ваши расчеты могут отличаться от ожидаемого результата,
@@ -772,6 +757,21 @@ ORDER BY
 
 6.17
 SELECT
+  CASE
+    WHEN EXTRACT(DOW from creation_time) IN (0, 6) THEN 'weekend'
+    ELSE 'weekdays'
+    END week_part,
+  ROUND(AVG(array_length(product_ids, 1)), 2) avg_order_size
+FROM
+  orders
+GROUP BY
+  week_part
+ORDER BY
+  avg_order_size
+
+
+6.18
+SELECT
   user_id,
   COUNT(*) FILTER (WHERE action = 'create_order') orders_count ,
   ROUND(
@@ -789,7 +789,7 @@ ORDER BY
   user_id
 
 
-6.18
+6.19
 SELECT
   DATE_PART('isodow', time)::INT weekday_number,
   TO_CHAR(time, 'Dy') weekday,
@@ -1764,7 +1764,7 @@ LIMIT
   1000
 
 
-8.15
+8.17
 WITH
   splited_orders AS (
     SELECT DISTINCT order_id, UNNEST(product_ids) product_id
@@ -1785,7 +1785,7 @@ ORDER BY times_purchased desc
 LIMIT 10
 
 
-8.16
+8.17
 WITH cancel_rates AS (
   SELECT
     user_id,
@@ -1809,14 +1809,14 @@ GROUP BY sex
 ORDER BY sex
 
 
-8.17
+8.18
 SELECT orders.order_id
 FROM orders JOIN courier_actions USING (order_id)
 ORDER BY time - creation_time DESC
 LIMIT 10
 
 
-8.18
+8.19
 WITH
   splited_orders AS (
     SELECT order_id, UNNEST(product_ids) product_id
@@ -1834,7 +1834,7 @@ GROUP BY order_id
 ORDER BY order_id
 
 
-8.19
+8.20
 WITH
   max_orders AS (
     SELECT *
@@ -1871,7 +1871,7 @@ LIMIT
   10
 
 
-8.20
+8.21
 /*
 ['кура', 'булка', 'кура'] => 1 пара (а не две).
 
@@ -1965,7 +1965,7 @@ ORDER BY
 
 ------------------
 
-9.1
+10.1
 SELECT
   product_id,
   name,
@@ -1977,7 +1977,7 @@ FROM
   products
 
 
-9.2
+10.2
 SELECT
   product_id,
   name,
@@ -1991,7 +1991,7 @@ ORDER BY
   product_id
 
 
-9.3
+10.3
 SELECT
   product_id,
   name,
@@ -2005,7 +2005,7 @@ ORDER BY
   product_id
 
 
-9.4
+10.4
 WITH
   order_counts AS (
     SELECT
@@ -2027,7 +2027,7 @@ FROM
   order_counts
 
 
-9.5
+10.5
 WITH
   not_canceled_orders AS (
     SELECT order_id
@@ -2050,7 +2050,7 @@ WHERE
   order_id IN (SELECT * FROM not_canceled_orders)
 
 
-9.5-2
+10.5-2
 SELECT
   user_id,
   order_id,
@@ -2064,7 +2064,7 @@ LIMIT
   1000
 
 
-9.6
+10.6
 SELECT
   user_id,
   order_id,
@@ -2078,7 +2078,7 @@ WHERE
   order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
 
 
-9.6-2
+10.6-2
 SELECT
   user_id,
   order_id,
@@ -2094,7 +2094,7 @@ LIMIT
   1000
 
 
-9.7
+10.7
 WITH intervals AS (
   SELECT
     user_id,
@@ -2120,7 +2120,7 @@ LIMIT
   1000
 
 
-9.8
+10.8
 /*
 "по трём **предыдущим** дням".
 3 PRECEDING AND 1 PRECEDING
@@ -2149,7 +2149,7 @@ FROM
   order_counts
 
 
-9.9
+10.9
 SELECT
   courier_id,
   COUNT(order_id) delivered_orders,
@@ -2169,7 +2169,7 @@ ORDER BY
   courier_id
 
 
-9.10
+10.12
 SELECT
   product_id,
   name,
@@ -2186,7 +2186,7 @@ ORDER BY
   product_id
 
 
-9.11
+10.13
 WITH counter AS (
   SELECT
     user_id, order_id, action, time,
@@ -2208,7 +2208,7 @@ ORDER BY
   user_id, order_id, action, time
 
 
-9.12
+10.14
 WITH counter AS (
   SELECT
     courier_id,
@@ -2232,7 +2232,7 @@ LIMIT
   (SELECT ROUND(COUNT(DISTINCT courier_id) * 0.1) FROM courier_actions)
 
 
-9.13
+10.15
 /*
 Время последнего действия не курьера, а *вообще* последнего в этой таблице.
 Оно одинаковое для всех.
@@ -2269,7 +2269,7 @@ ORDER BY
   courier_id
 
 
-9.13-2
+10.15-2
 WITH
   days_together AS (
     SELECT
@@ -2299,7 +2299,7 @@ ORDER BY
   courier_id
 
 
-9.14
+10.16
 /*
 "по убыванию даты совершения заказа (**именно даты**, а не времени)"
 */
@@ -2339,7 +2339,7 @@ ORDER BY
   order_id
 
 
-9.15
+10.17
 WITH
   splited_orders AS (
     SELECT
@@ -2392,7 +2392,7 @@ ORDER BY
   date
 
 
-9.15-2
+10.17-2
 WITH
   splited_orders AS (
     SELECT
@@ -2435,7 +2435,7 @@ ORDER BY
   date
 
 
-9.16
+10.18
 /*
 Похоже проверяют не по полному набору данных. То, что у нас 321 получилось еще ничего не значит.
 Если проранжировать все стоимости, то на 39-й позиции там 1р, на 40-й - 2р.
