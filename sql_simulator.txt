@@ -732,6 +732,22 @@ HAVING MAX(time) < '2022-09-08'
 ORDER BY user_id
 
 
+6.15
+SELECT
+  CASE
+    WHEN array_length(product_ids, 1) < 4 THEN 'Малый'
+    WHEN array_length(product_ids, 1) > 6 THEN 'Большой'
+    ELSE 'Средний'
+    END as order_size,
+  COUNT(*) orders_count
+FROM
+  orders
+GROUP BY
+  order_size
+ORDER BY
+  order_size
+
+
 6.16
 /*
 "Ваши расчеты могут отличаться от ожидаемого результата,
