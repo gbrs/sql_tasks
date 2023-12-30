@@ -2207,6 +2207,33 @@ ORDER BY
   courier_id
 
 
+10.10
+WITH order_types AS (
+    SELECT
+      time::date AS date,
+      CASE
+        WHEN time = MIN(time) OVER (PARTITION BY user_id) THEN 'Первый'
+        ELSE 'Повторный'
+        END order_type
+    FROM
+      user_actions ua1
+    WHERE
+      NOT EXISTS (SELECT order_id FROM user_actions ua2 WHERE ua1.order_id = ua2.order_id AND action = 'cancel_order')
+)
+
+SELECT
+  *,
+  COUNT(order_type) orders_count
+FROM
+  order_types
+GROUP BY
+  date,
+  order_type
+ORDER BY
+  date,
+  order_type
+
+
 10.12
 SELECT
   product_id,
