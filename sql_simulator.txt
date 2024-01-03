@@ -2234,6 +2234,43 @@ ORDER BY
   order_type
 
 
+10.11
+WITH
+    order_types as (
+        SELECT
+            time::date as date,
+                case when time = min(time) OVER (PARTITION BY user_id) then 'Первый'
+                     else 'Повторный' end order_type
+        FROM
+            user_actions ua1
+        WHERE  not exists (
+                SELECT order_id
+                FROM user_actions ua2
+                WHERE ua1.order_id = ua2.order_id and action = 'cancel_order'
+                )
+    ),
+
+    order_count as (
+        SELECT
+            *,
+            count(order_type) orders_count
+        FROM
+            order_types
+        GROUP BY
+            date,
+            order_type
+    )
+
+SELECT
+    *,
+    round(orders_count / sum(orders_count) OVER (PARTITION BY date), 2) orders_share
+FROM
+    order_count
+ORDER BY
+    date,
+    order_type
+
+
 10.12
 SELECT
   product_id,
