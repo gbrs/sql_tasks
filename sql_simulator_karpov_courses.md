@@ -268,3 +268,52 @@ GROUP BY
 HAVING
     day_number IN (0, 1, 7)
 ```
+
+
+#### 2mm.4
+Для каждого **_дня недели_** в таблицах orders и user_actions рассчитайте следующие показатели:
+- Выручку на пользователя (**_ARPU_**).
+- Выручку на платящего пользователя (**_ARPPU_**).
+- Выручку на заказ (**_AOV_**).
+
+При расчётах учитывайте данные только за период с 26 августа 2022 года по 8 сентября 2022 года включительно — так, 
+чтобы в анализ попало одинаковое количество всех дней недели (ровно по два дня).
+
+В результирующую таблицу включите как наименования дней недели (например, Monday), так и порядковый номер дня недели 
+(от 1 до 7, где 1 — это Monday, 7 — это Sunday).
+
+При расчёте всех показателей округляйте значения до двух знаков после запятой.
+
+Результат должен быть отсортирован по возрастанию порядкового номера дня недели.
+
+Поля в результирующей таблице: weekday, weekday_number, arpu, arppu, aov.
+
+Будем считать, что оплата за заказ поступает сразу же после его оформления.
+
+Платящими будем считать тех пользователей, которые в данный день оформили хотя бы один заказ, 
+который в дальнейшем не был отменен.
+
+```sql
+WITH
+    start_days as (
+        SELECT
+            user_id,
+            time::date dt,
+            (min(time) OVER(PARTITION BY user_id))::DATE start_date
+        FROM
+            user_actions
+    )
+
+SELECT
+    date_trunc('month', start_date)::date start_month,
+    start_date,
+    dt - start_date day_number,
+    round(count(distinct user_id)::decimal / max(count(distinct user_id)) OVER(PARTITION BY start_date), 2) retention
+FROM
+    start_days
+GROUP BY
+    start_month,
+    start_date,
+    day_number
+```
+
