@@ -2,7 +2,8 @@
 [Симулятор SQL от Karpov Course](https://lab.karpov.courses/learning/152/)
 
 TODO:
-код в экономику продукта добавить
+перепроверить условие vs код
+перепроверить оформление
 
 ## РЕШАЕМ ПРОДУКТОВЫЕ ЗАДАЧИ
 
@@ -10,7 +11,7 @@ TODO:
 
 #### 2mm.6  
 Для каждой **_рекламной кампании_** для каждого дня посчитайте две метрики:
-1. Накопительный **_ARPPU_**.
+1. **_Накопительный ARPPU_**.
 2. Затраты на привлечение одного покупателя (**_CAC_**).
 
 Колонку с наименованиями кампаний назовите ads_campaign, колонку с днями — day, а колонки со значениями метрик — 
@@ -676,7 +677,144 @@ total_tax, total_gross_profit, gross_profit_ratio, total_gross_profit_ratio.
 осталась неизменной.
 
 ```sql
+WITH
+    product_prices_and_vat as (
+        SELECT
+            product_id,
+            price,
+            CASE
+                WHEN name IN ('сахар', 'сухарики', 'сушки', 'семечки',
+                                'масло льняное', 'виноград', 'масло оливковое',
+                                'арбуз', 'батон', 'йогурт', 'сливки', 'гречка',
+                                'овсянка', 'макароны', 'баранина', 'апельсины',
+                                'бублики', 'хлеб', 'горох', 'сметана', 'рыба копченая',
+                                'мука', 'шпроты', 'сосиски', 'свинина', 'рис',
+                                'масло кунжутное', 'сгущенка', 'ананас', 'говядина',
+                                'соль', 'рыба вяленая', 'масло подсолнечное', 'яблоки',
+                                'груши', 'лепешка', 'молоко', 'курица', 'лаваш', 'вафли',
+                                'мандарины')
+                THEN ROUND(price / 1.1 * 0.1, 2)
+                ELSE ROUND(price / 1.2 * 0.2, 2)
+                END as vat
+        FROM
+            products
+    ),
 
+    splited_orders as (
+        SELECT
+            creation_time::date date,
+            order_id,
+            unnest (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            not exists (SELECT *
+                        FROM user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+    ),
+
+    access_sums as (
+        SELECT
+            date,
+            sum(price) total,
+            sum(vat) total_vat,
+            CASE
+                WHEN date < '2022-09-01' THEN COUNT(DISTINCT order_id) * 140
+                ELSE COUNT(DISTINCT order_id) * 115
+                END as assembly_costs,
+            CASE
+                WHEN date < '2022-09-01' THEN 120000
+                ELSE 150000
+                END as rental_costs
+        FROM
+            splited_orders
+            LEFT JOIN product_prices_and_vat using (product_id)
+        GROUP BY
+            date
+    ),
+
+    delivery_by_working_shift as (
+        SELECT
+            time::date date,
+            COUNT(order_id) delivered_orders
+        FROM
+            courier_actions
+        WHERE
+            action = 'deliver_order'
+        GROUP BY
+            date,
+            courier_id
+    ),
+
+    delivery_costs as (
+        SELECT
+            date,
+            SUM(delivered_orders) * 150 as delivery_cost
+        FROM
+            delivery_by_working_shift
+        GROUP BY
+            date
+    ),
+
+    delivery_bonuses as (
+        SELECT
+            date,
+            CASE
+                WHEN date < '2022-09-01' THEN COUNT(delivered_orders) * 400
+                ELSE COUNT(delivered_orders) * 500
+                END as delivery_bonus
+        FROM
+            delivery_by_working_shift
+        WHERE
+            delivered_orders > 4
+        GROUP BY
+            date
+    ),
+
+    sum_metrics as (
+        SELECT
+            date,
+            total as revenue,
+            assembly_costs + rental_costs + delivery_cost + coalesce(delivery_bonus, 0) as costs,
+            total_vat as tax
+        FROM
+            access_sums
+            LEFT JOIN delivery_costs USING (date)
+            LEFT JOIN delivery_bonuses USING (date)
+    ),
+
+    rolling_metrics as (
+        SELECT
+            date,
+            revenue,
+            costs,
+            tax,
+            revenue - costs - tax as gross_profit,
+            SUM(revenue) OVER(ORDER BY date) as total_revenue,
+            SUM(costs) OVER(ORDER BY date) as total_costs,
+            SUM(tax) OVER(ORDER BY date) as total_tax,
+            SUM(revenue - costs - tax) OVER(ORDER BY date) as total_gross_profit
+        FROM
+            sum_metrics
+    )
+
+SELECT
+    date,
+    revenue,
+    costs,
+    tax,
+    gross_profit,
+    total_revenue,
+    total_costs,
+    total_tax,
+    total_gross_profit,
+    ROUND(100 * gross_profit / revenue, 2) as gross_profit_ratio,
+    ROUND(100 * total_gross_profit / total_revenue, 2) as total_gross_profit_ratio
+FROM
+    rolling_metrics
+ORDER BY
+    date
 ```
 
 
@@ -701,7 +839,63 @@ total_tax, total_gross_profit, gross_profit_ratio, total_gross_profit_ratio.
 Будем считать, что оплата за заказ поступает сразу же после его оформления.
 
 ```sql
+WITH
+    splited_orders as (
+        SELECT
+            unnest (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            not exists (SELECT *
+                        FROM user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+        ),
 
+    total(total_sum) as (
+        SELECT
+            sum(price)
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+    ),
+
+    product_sums as (
+        SELECT
+            name product_name,
+            sum(price) revenue,
+            round(100.0 * sum(price) / total_sum, 2) share_in_revenue
+        FROM
+            splited_orders
+            LEFT JOIN products using (product_id)
+            CROSS JOIN total
+        GROUP BY
+            product_name,
+            total_sum
+    ),
+
+    product_sums_with_others as (
+        SELECT
+            CASE
+                WHEN share_in_revenue < 0.5 THEN 'ДРУГОЕ'
+                ELSE product_name
+                END as product_name,
+            revenue,
+            share_in_revenue
+        FROM
+            product_sums
+    )
+
+SELECT
+    product_name,
+    sum(revenue) revenue,
+    sum(share_in_revenue) share_in_revenue
+FROM
+    product_sums_with_others
+GROUP BY
+    product_name
+ORDER BY
+    revenue desc
 ```
 
 
@@ -727,12 +921,59 @@ old_users_revenue_share, date.
 Новыми будем считать тех пользователей, которые в данный день совершили своё первое действие в нашем сервисе.
 
 ```sql
+WITH
+    splited_orders as(
+        SELECT
+            order_id,
+            user_id,
+            creation_time::date date,
+            unnest (product_ids) product_id
+        FROM
+            orders
+            LEFT JOIN user_actions using(order_id)
+        WHERE
+            not exists (SELECT *
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+    ),
 
+    users_first_date as (
+        SELECT DISTINCT
+            user_id,
+            min(time)::date as first_date
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    order_sums as (
+        SELECT
+            date,
+            sum(price) revenue,
+            sum(price) filter(WHERE (so.user_id, so.date) in (SELECT user_id, first_date FROM users_first_date)) new_users_revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY date
+)
+
+SELECT
+    date,
+    revenue,
+    new_users_revenue,
+    round(100 * new_users_revenue / revenue, 2) new_users_revenue_share,
+    round(100 * (revenue - new_users_revenue) / revenue, 2) old_users_revenue_share
+FROM
+    order_sums
+ORDER BY
+    date
 ```
 
 
 #### 2.4
-Для каждого **_дня недели_** рассчитайте следующие показатели:
+**_Для каждого дня недели_** рассчитайте следующие показатели:
 - Выручку на пользователя (**_ARPU_**).
 - Выручку на платящего пользователя (**_ARPPU_**).
 - Выручку на заказ (**_AOV_**).
@@ -755,7 +996,68 @@ old_users_revenue_share, date.
 который в дальнейшем не был отменен.
 
 ```sql
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+            AND creation_time BETWEEN '2022-08-26' AND '2022-09-09'
+    ),
 
+    order_sums AS (
+        SELECT
+            TO_CHAR(creation_time, 'Day') weekday,
+            DATE_PART('isodow', creation_time) weekday_number,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            weekday, weekday_number
+    ),
+
+    counter AS (
+        SELECT
+            TO_CHAR(time, 'Day') weekday,
+            DATE_PART('isodow', time) weekday_number,
+            COUNT(DISTINCT user_id) active_users,
+            COUNT(DISTINCT user_id)
+                    FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) paying_users,
+            COUNT(DISTINCT order_id)
+                    FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) order_count
+        FROM
+            user_actions ua1
+        WHERE
+            time BETWEEN '2022-08-26' AND '2022-09-09'
+        GROUP BY
+            weekday, weekday_number
+    )
+
+SELECT
+    weekday,
+    weekday_number,
+    ROUND(revenue / active_users, 2) arpu,
+    ROUND(revenue / paying_users, 2) arppu,
+    ROUND(revenue / order_count, 2) aov
+FROM
+    order_sums
+    INNER JOIN counter USING (weekday, weekday_number)
+ORDER BY
+    weekday_number
 ```
 
 
@@ -782,7 +1084,97 @@ old_users_revenue_share, date.
 Будем считать, что оплата за заказ поступает сразу же после его оформления.
 
 ```sql
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE NOT EXISTS (SELECT * FROM user_actions
+                            WHERE action = 'cancel_order'
+                            AND orders.order_id = user_actions.order_id)
+    ),
 
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    users_first_order_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            user_actions ua1
+        WHERE NOT EXISTS (SELECT * FROM user_actions ua2
+                            WHERE ua1.order_id = ua2.order_id
+                            AND action = 'cancel_order')
+        GROUP BY
+            user_id
+    ),
+
+    paying_user_count AS (
+        SELECT
+            date,
+            COUNT(DISTINCT user_id) paying_users
+        FROM
+            users_first_order_date
+        GROUP BY
+            date
+    ),
+
+    users_first_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    active_user_count AS (
+        SELECT
+            date,
+            COUNT(DISTINCT user_id) active_users
+        FROM
+            users_first_date
+        GROUP BY
+            date
+    ),
+
+    order_counter AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT order_id) order_count
+        FROM
+            user_actions ua1
+        WHERE NOT EXISTS (SELECT * FROM user_actions ua2
+                            WHERE ua1.order_id = ua2.order_id
+                            AND action = 'cancel_order')
+        GROUP BY
+            date
+    )
+
+
+SELECT
+    date,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(active_users) OVER(ORDER BY date), 2) running_arpu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(paying_users) OVER(ORDER BY date), 2) running_arppu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(order_count) OVER(ORDER BY date), 2) running_aov
+FROM
+    order_sums
+    INNER JOIN paying_user_count USING (date)
+    INNER JOIN active_user_count USING (date)
+    INNER JOIN order_counter USING (date)
 ```
 
 
@@ -806,7 +1198,58 @@ old_users_revenue_share, date.
 который в дальнейшем не был отменен.
 
 ```sql
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    ),
 
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    counter AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT user_id) active_users,
+            COUNT(DISTINCT user_id) FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) paying_users,
+            COUNT(DISTINCT order_id) FILTER(WHERE NOT EXISTS
+                    (SELECT * FROM user_actions ua2
+                    WHERE ua1.order_id = ua2.order_id
+                    AND action = 'cancel_order')) order_count
+        FROM
+            user_actions ua1
+        GROUP BY
+            date
+    )
+
+SELECT
+    date,
+    ROUND(revenue / active_users, 2) arpu,
+    ROUND(revenue / paying_users, 2) arppu,
+    ROUND(revenue / order_count, 2) aov
+FROM
+    order_sums
+    INNER JOIN counter USING (date)
 ```
 
 
@@ -830,8 +1273,575 @@ old_users_revenue_share, date.
 со значениями аналогичного показателя всех предыдущих дней.
 
 ```sql
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    ),
 
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            INNER JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    )
+
+SELECT
+    date,
+    revenue,
+    SUM(revenue) OVER(ORDER BY date) total_revenue,
+    ROUND(100.0 * (revenue - LAG(revenue, 1) OVER()) / LAG(revenue, 1) OVER(), 2) AS revenue_change
+FROM
+    order_sums
 ```
+
+
+## ПОСТРОЕНИЕ ДАШБОРДОВ 
+
+#### 1.8
+**_Для каждого часа_** в сутках рассчитайте следующие показатели:
+- **_Число_** успешных (**_доставленных_**) **_заказов_**.
+- Число **_отменённых_** заказов.
+- **_Долю отменённых_** заказов в общем числе заказов (cancel rate).
+
+Колонки с показателями назовите соответственно successful_orders, canceled_orders, cancel_rate. 
+Колонку с часом оформления заказа назовите hour. 
+При расчёте доли отменённых заказов округляйте значения до трёх знаков после запятой.
+
+Результирующая таблица должна быть отсортирована по возрастанию колонки с часом оформления заказа.
+
+Поля в результирующей таблице: hour, successful_orders, canceled_orders, cancel_rate.
+
+```sql
+WITH
+  amounts AS (
+    SELECT
+      DATE_PART('hour', creation_time)::INT AS hour,
+      COUNT(*) FILTER (WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')) successful_orders,
+      COUNT(*) FILTER (WHERE order_id IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')) canceled_orders
+    FROM
+      orders
+    GROUP BY
+      hour
+  )
+
+SELECT
+  *,
+  ROUND(1.0 * canceled_orders / (canceled_orders + successful_orders), 3) cancel_rate
+FROM
+  amounts
+ORDER BY
+  hour
+```
+
+
+#### 1.7
+**_Для каждого дня рассчитайте, за сколько минут в среднем курьеры доставляли свои заказы_**.
+
+Колонку с показателем назовите minutes_to_deliver. Колонку с датами назовите date. 
+При расчёте среднего времени доставки округляйте количество минут до целых значений. 
+Учитывайте только доставленные заказы, отменённые заказы не учитывайте.
+
+Результирующая таблица должна быть отсортирована по возрастанию даты.
+
+Поля в результирующей таблице: date, minutes_to_deliver.
+
+Некоторые заказы оформляют в один день, а доставляют уже на следующий. При расчёте среднего времени доставки 
+в качестве дней, для которых считать среднее, используйте дни фактической доставки заказов.
+
+```sql
+WITH
+  times_to_deliver AS (
+    SELECT
+      order_id,
+      EXTRACT(epoch FROM MAX(time) - MIN(time)) / 60 time_to_deliver,
+      MAX(time)::DATE date
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action='deliver_order')
+    GROUP BY
+      order_id
+)
+
+
+SELECT
+  date,
+  ROUND(AVG(time_to_deliver))::INT minutes_to_deliver
+FROM
+  times_to_deliver
+GROUP BY
+  date
+ORDER BY
+  date
+```
+
+
+#### 1.6
+**_Для каждого дня_** рассчитайте следующие показатели:
+- **_Число платящих пользователей на одного активного курьера_**.
+- **_Число заказов_** на одного активного курьера.
+
+Колонки с показателями назовите соответственно users_per_courier и orders_per_courier. Колонку с датами назовите date. 
+При расчёте показателей округляйте значения до двух знаков после запятой.
+
+Результирующая таблица должна быть отсортирована по возрастанию даты.
+
+Поля в результирующей таблице: date, users_per_courier, orders_per_courier.
+
+Платящими по-прежнему считаем тех пользователей, которые в данный день оформили хотя бы один заказ, 
+который в дальнейшем не был отменен.
+
+Курьеров считаем активными, если в данный день они приняли хотя бы один заказ, который был доставлен 
+(возможно, уже на следующий день), или доставили любой заказ.
+
+В расчётах учитывайте только неотменённые заказы. 
+
+```sql
+WITH
+  users_data AS (
+    SELECT
+      time::DATE AS date,
+      COUNT(DISTINCT user_id) paying_users,
+      COUNT(DISTINCT order_id) orders_amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+    GROUP BY
+      date
+  ),
+
+  couriers_activity AS (
+    SELECT
+      time::DATE AS date,
+      COUNT(DISTINCT courier_id) active_users
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action = 'deliver_order')
+      AND action = 'accept_order'
+    GROUP BY
+      date
+  )
+
+
+SELECT
+  date,
+  ROUND(1.0 * paying_users / active_users, 2) users_per_courier,
+  ROUND(1.0 * orders_amount / active_users, 2) orders_per_courier
+FROM
+  users_data
+  INNER JOIN couriers_activity USING(date)
+```
+
+
+#### 1.5
+**_Для каждого дня_**, рассчитайте следующие показатели:
+- Общее **_число заказов_**.
+- **_Число первых заказов_** (заказов, сделанных пользователями впервые).
+- **_Число заказов новых пользователей_** (заказов, сделанных пользователями в тот же день, когда они впервые воспользовались сервисом).
+- **_Долю первых заказов_** в общем числе заказов (долю п.2 в п.1).
+- **_Долю заказов новых пользователей_** в общем числе заказов (долю п.3 в п.1).
+
+Колонки с показателями назовите соответственно orders, first_orders, new_users_orders, first_orders_share, 
+new_users_orders_share. Колонку с датами назовите date. Все показатели с долями необходимо выразить в процентах. 
+При расчёте долей округляйте значения до двух знаков после запятой.
+
+Результат должен быть отсортирован по возрастанию даты.
+
+Поля в результирующей таблице: date, orders, first_orders, new_users_orders, first_orders_share, new_users_orders_share.
+
+Во всех случаях при расчёте числа заказов учитывайте только фактически совершённые заказы, 
+отменённые заказы не учитывайте.
+
+```sql
+WITH
+  users_first_order_date AS (
+    SELECT
+      user_id,
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    WHERE
+       order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+    GROUP BY
+      user_id
+  ),
+
+  users_first_date AS (
+    SELECT
+      user_id,
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_order_counter AS (
+    SELECT
+      time::DATE AS date,
+      user_id,
+      COUNT(*) amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+          AND action = 'create_order'
+    GROUP BY
+      date,
+      user_id
+  ),
+
+  first_amounts AS (
+    SELECT
+      date,
+      SUM(amount)::INTEGER orders,
+      (COUNT(*) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_order_date)))::INTEGER first_orders,
+      (SUM(amount) FILTER(WHERE (user_id, date) IN (SELECT * FROM users_first_date)))::INTEGER new_users_orders
+    FROM
+      users_order_counter
+    GROUP BY
+      date
+      )
+
+SELECT
+  date,
+  orders,
+  first_orders,
+  new_users_orders,
+  ROUND(100.0 * first_orders / orders, 2) first_orders_share,
+  ROUND(100.0 * new_users_orders / orders, 2) new_users_orders_share
+FROM
+  first_amounts
+ORDER BY
+  date
+```
+
+
+#### 1.4
+**_Для каждого дня_**, рассчитайте следующие показатели:
+- **_Долю пользователей, сделавших в этот день всего один заказ_**, в общем количестве платящих пользователей.
+- Долю пользователей, сделавших в этот день **_несколько заказов_**, в общем количестве платящих пользователей.
+
+Колонки с показателями назовите соответственно single_order_users_share, several_orders_users_share. 
+Колонку с датами назовите date. Все показатели с долями необходимо выразить в процентах. 
+При расчёте долей округляйте значения до двух знаков после запятой.
+
+Результат должен быть отсортирован по возрастанию даты.
+
+Поля в результирующей таблице: date, single_order_users_share, several_orders_users_share.
+
+Платящими по-прежнему считаем тех пользователей, которые в данный день оформили (и не отменили) хотя бы один заказ.
+
+```sql
+WITH
+  users_orders AS (
+    SELECT
+      time::DATE date,
+      user_id,
+      COUNT(*) today_amount
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+      and action = 'create_order'
+    GROUP BY
+      date,
+      user_id)
+
+SELECT
+  date,
+  ROUND(100.0 * COUNT(*) FILTER(WHERE today_amount = 1) / COUNT(*), 2) single_order_users_share,
+  ROUND(100.0 * COUNT(*) FILTER(WHERE today_amount > 1) / COUNT(*), 2) several_orders_users_share
+FROM
+  users_orders
+GROUP BY
+  date
+ORDER BY
+  date
+```
+
+
+#### 1.3
+**_Для каждого дня_**, рассчитайте следующие показатели:
+- **_Число платящих пользователей_**.
+- **_Число активных курьеров_**.
+- **_Долю платящих пользователей_** в общем числе пользователей на текущий день.
+- **_Долю активных курьеров_** в общем числе курьеров на текущий день.
+
+Колонки с показателями назовите соответственно paying_users, active_couriers, paying_users_share, active_couriers_share. 
+Колонку с датами назовите date. Все показатели долей необходимо выразить в процентах.
+При их расчёте округляйте значения до двух знаков после запятой.
+
+Результат должен быть отсортирован по возрастанию даты. 
+
+Поля в результирующей таблице: date, paying_users, active_couriers, paying_users_share, active_couriers_share.
+
+Платящими будем считать тех пользователей, которые в данный день оформили хотя бы один заказ, 
+который в дальнейшем не был отменен.
+
+Курьеров будем считать активными, если в данный день они приняли хотя бы один заказ, который был доставлен 
+(возможно, уже на следующий день), или доставили любой заказ.
+
+```sql
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  ),
+
+  amount_table AS (
+    SELECT
+      date,
+      (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+      (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+    FROM
+      users_counts_by_date u
+      INNER JOIN couriers_counts_by_date USING(date)
+  ),
+
+  paying_users_number AS (
+    SELECT
+      time:: DATE date,
+      COUNT(DISTINCT user_id) paying_users
+    FROM
+      user_actions
+    WHERE
+      order_id NOT IN (SELECT order_id FROM user_actions WHERE action='cancel_order')
+    GROUP BY
+      1),
+
+  active_couriers_number AS (
+    SELECT
+      time:: DATE date,
+      COUNT(DISTINCT courier_id) active_couriers
+    FROM
+      courier_actions
+    WHERE
+      order_id IN (SELECT order_id FROM courier_actions WHERE action='deliver_order')
+      AND action='accept_order'
+    GROUP BY
+      1)
+
+
+SELECT
+  date,
+  paying_users,
+  active_couriers,
+  ROUND(100.0 * paying_users / total_users, 2) paying_users_share,
+  ROUND(100.0 * active_couriers / total_couriers, 2) active_couriers_share
+FROM
+  paying_users_number
+  FULL JOIN active_couriers_number USING(date)
+  FULL JOIN amount_table USING(date)
+```
+
+
+#### 1.2
+Теперь **_для каждого дня дополнительно_** рассчитайте следующие показатели:
+- **_Прирост числа новых пользователей_**.
+- Прирост числа новых **_курьеров_**.
+- **_Прирост общего числа пользователей_**.
+- Прирост общего числа **_курьеров_**.
+
+Показатели, рассчитанные на предыдущем шаге, также включите в результирующую таблицу.
+
+Колонки с новыми показателями назовите соответственно new_users_change, new_couriers_change, total_users_growth, 
+total_couriers_growth. Колонку с датами назовите date.
+
+Все показатели прироста считайте в процентах относительно значений в предыдущий день. 
+При расчёте показателей округляйте значения до двух знаков после запятой.
+
+Результирующая таблица должна быть отсортирована по возрастанию даты.
+
+Поля в результирующей таблице: date, new_users, new_couriers, total_users, total_couriers, new_users_change, 
+new_couriers_change, total_users_growth, total_couriers_growth.
+
+Пропущенные значения приростов для самой первой даты не заполняйте — просто оставьте поля в этой строке пустыми.
+
+```sql
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  ),
+
+  amount_table AS (
+    SELECT
+      date,
+      new_users,
+      new_couriers,
+      (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+      (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+    FROM
+      users_counts_by_date u
+      INNER JOIN couriers_counts_by_date USING(date)
+  )
+
+SELECT
+  date,
+  new_users,
+  new_couriers,
+  total_users,
+  total_couriers,
+  ROUND(100.0 * (new_users - LAG(new_users) OVER()) / LAG(new_users) OVER(), 2) new_users_change,
+  ROUND(100.0 * (new_couriers - LAG(new_couriers) OVER()) / LAG(new_couriers) OVER(), 2) new_couriers_change,
+  ROUND(100.0 * (total_users - LAG(total_users) OVER()) / LAG(total_users) OVER(), 2) total_users_growth,
+  ROUND(100.0 * (total_couriers - LAG(total_couriers) OVER()) / LAG(total_couriers) OVER(), 2) total_couriers_growth
+FROM
+  amount_table
+```
+
+
+#### 1.1
+**_Для каждого дня_** рассчитайте следующие показатели:
+- **_Число новых пользователей_**.
+- **_Число новых курьеров_**.
+- **_Общее число пользователей на текущий день_**.
+- **_Общее число курьеров_** на текущий день.
+
+Колонки с показателями назовите соответственно new_users, new_couriers, total_users, total_couriers. 
+Колонку с датами назовите date. Проследите за тем, чтобы показатели были выражены целыми числами. 
+Результат должен быть отсортирован по возрастанию даты.
+
+Поля в результирующей таблице: date, new_users, new_couriers, total_users, total_couriers.
+
+Новыми будем считать тех пользователей и курьеров, которые в данный день совершили своё первое действие в нашем сервисе. 
+Общее число пользователей/курьеров на текущий день — это результат сложения числа новых пользователей/курьеров 
+в текущий день со значениями аналогичного показателя всех предыдущих дней.
+
+```sql
+WITH
+  users_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      user_actions
+    GROUP BY
+      user_id
+  ),
+
+  users_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_users
+    FROM
+      users_min_dates
+    GROUP BY
+      date
+  ),
+
+  couriers_min_dates AS (
+    SELECT
+      MIN(time)::DATE AS date
+    FROM
+      courier_actions
+    GROUP BY
+      courier_id
+  ),
+
+  couriers_counts_by_date AS (
+    SELECT
+      date,
+      COUNT(*) new_couriers
+    FROM
+      couriers_min_dates
+    GROUP BY
+      date
+  )
+
+SELECT
+  date,
+  new_users,
+  new_couriers,
+  (SUM(new_users) OVER(ORDER BY date))::INTEGER total_users,
+  (SUM(new_couriers) OVER(ORDER BY date))::INTEGER total_couriers
+FROM
+  users_counts_by_date u
+  INNER JOIN couriers_counts_by_date USING(date)
+```
+
 
 
 
