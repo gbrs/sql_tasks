@@ -1,9 +1,10 @@
-# РЕШЕНИЯ ЗАДАЧ ИЗ СИМУЛЯТОРА SQL. Часть II
-[Симулятор SQL от Karpov Course](https://lab.karpov.courses/learning/152/)
+# СИМУЛЯТОР SQL (Karpov Courses). Часть II
+[Симулятор SQL от Karpov Courses](https://lab.karpov.courses/learning/152/)  
+_#redash   #sql   #postgresql_
 
-## РЕШАЕМ ПРОДУКТОВЫЕ ЗАДАЧИ
+## МАРКЕТИНГОВЫЕ МЕТРИКИ
 
-### МАРКЕТИНГОВЫЕ МЕТРИКИ
+![](./images/2mm-dashboard.jpg)
 
 #### 2mm.6  
 Для каждой **_рекламной кампании_** для каждого дня посчитайте две метрики:
@@ -441,6 +442,8 @@ ORDER BY
     avg_check desc
 ```
 
+![](./images/2mm-3.jpg)
+
 
 #### 2mm.2
 **_Рассчитайте ROI для каждого рекламного канала_**.
@@ -568,6 +571,8 @@ ORDER BY
     roi desc
 ```
 
+![](./images/2mm-2.jpg)
+
 
 #### 2mm.1
 Рассчитайте метрику **_CAC для двух рекламных кампаний_**.
@@ -639,9 +644,10 @@ WHERE
     and order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
 ```
 
+![](./images/2mm-1.jpg)
 
 
-### ЭКОНОМИКА ПРОДУКТА
+## ЭКОНОМИКА ПРОДУКТА
 
 #### 2.7
 **_Для каждого дня_** рассчитайте следующие показатели:
