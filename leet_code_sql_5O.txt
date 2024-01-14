@@ -255,6 +255,28 @@ ORDER BY
   subject_name
 
 
+1321. Restaurant Growth
+WITH daily_amount AS (
+  SELECT
+    visited_on,
+    SUM(amount) amount
+  FROM
+    Customer
+  GROUP BY
+    visited_on
+)
+
+
+SELECT
+  visited_on,
+  SUM(amount) OVER(ROWS BETWEEN 6 preceding and current row) amount,
+  ROUND(AVG(amount) OVER(ROWS BETWEEN 6 preceding and current row), 2) average_amount
+FROM
+  daily_amount
+LIMIT
+  6, 100
+
+
 1327. List the Products Ordered in a Period
 SELECT
   product_name,
