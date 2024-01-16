@@ -521,9 +521,9 @@ WITH
     SELECT
       *,
       CASE
-        WHEN income < 20000 THEN "Low Salary"
-        WHEN income > 50000 THEN "High Salary"
-        ELSE "Average Salary"
+        WHEN income < 20000 THEN 'Low Salary'
+        WHEN income > 50000 THEN 'High Salary'
+        ELSE 'Average Salary'
         END category
     FROM
       Accounts
@@ -532,7 +532,7 @@ WITH
   category_count as (
     SELECT
       category,
-      COUNT(*)
+      COUNT(*) accounts_count
     FROM
       category_table
     GROUP BY
@@ -540,12 +540,19 @@ WITH
   ),
 
   category_name as (
-    SELECT
-      "Low Salary",
-      "Average Salary",
-      "High Salary"
-      as category
+    SELECT 'Low Salary' as category
+    UNION
+    SELECT 'Average Salary'
+    UNION
+    SELECT 'High Salary'
   )
+
+SELECT
+  category,
+  COALESCE(accounts_count, 0) accounts_count
+FROM
+  category_name
+  LEFT JOIN category_count USING (category)
 
 
 1934. Confirmation Rate
