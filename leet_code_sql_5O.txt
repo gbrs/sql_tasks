@@ -163,6 +163,27 @@ FROM
   INNER JOIN Product USING (product_id)
 
 
+1070. Product Sales Analysis III
+SELECT
+  product_id,
+  year first_year,
+  quantity,
+  price
+FROM
+  Sales
+  INNER JOIN Product USING (product_id)
+WHERE
+  (product_id, year) IN (
+      SELECT
+        product_id,
+        MIN(year)
+      FROM
+        Sales
+      GROUP BY
+        product_id
+      )
+
+
 1075. Project Employees I
 SELECT
   project_id,
