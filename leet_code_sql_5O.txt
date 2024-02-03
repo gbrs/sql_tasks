@@ -218,6 +218,45 @@ ORDER BY
   id
 
 
+1164. Product Price at a Given Date
+WITH
+  last_changes AS (
+    SELECT
+      product_id,
+      MAX(change_date) last_change_date
+    FROM
+      Products
+    WHERE
+      change_date <= '2019-08-16'
+    GROUP BY
+      product_id
+  ),
+
+  last_prices AS (
+    SELECT
+      product_id,
+      new_price last_price
+    FROM
+      Products
+    WHERE
+      (product_id, change_date) IN (SELECT * FROM last_changes)
+  ),
+
+  unique_products AS (
+    SELECT
+      DISTINCT(product_id)
+    FROM
+      Products
+  )
+
+SELECT
+  up.product_id,
+  COALESCE(last_price, 10) price
+FROM
+  unique_products up
+  LEFT JOIN last_prices USING(product_id)
+
+
 1174. Immediate Food Delivery II
 SELECT
   ROUND(100.0 * SUM(IF(order_date = customer_pref_delivery_date, 1, 0)) / COUNT(*), 2)immediate_percentage
