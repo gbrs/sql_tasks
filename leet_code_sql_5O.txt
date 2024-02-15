@@ -101,6 +101,33 @@ HAVING
   COUNT(student) >= 5
 
 
+602. Friend Requests II: Who Has the Most Friends
+WITH
+  friendships AS (
+    SELECT requester_id, accepter_id FROM RequestAccepted
+    UNION ALL
+    SELECT accepter_id, requester_id FROM RequestAccepted
+  ),
+
+  friend_nums AS (
+    SELECT
+      requester_id id,
+      COUNT(*) num
+    FROM
+      friendships
+    GROUP BY
+      requester_id
+  )
+
+
+SELECT
+  *
+FROM
+  friend_nums
+WHERE
+  num = (SELECT MAX(num) FROM friend_nums)
+
+
 610. Triangle Judgement
 SELECT
   *,
