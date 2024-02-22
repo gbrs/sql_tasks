@@ -1280,7 +1280,6 @@ WITH
       courier_actions
     WHERE
       order_id IN (SELECT order_id FROM courier_actions WHERE action = 'deliver_order')
-      AND action = 'accept_order'
     GROUP BY
       date
   )
