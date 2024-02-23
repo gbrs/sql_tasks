@@ -44,6 +44,32 @@ FROM
     AND w2.temperature > w1.temperature
 
 
+550. Game Play Analysis IV
+SELECT
+  ROUND(
+    SUM(
+      IF(
+        (player_id, event_date) IN
+            (
+              SELECT
+                player_id,
+                ADDDATE(MIN(event_date), 1)
+              FROM
+                Activity
+              GROUP BY
+                player_id
+            ),
+        1,
+        0
+      )
+    )
+        / COUNT(DISTINCT player_id)
+    , 2
+  ) fraction
+FROM
+  Activity
+
+
 570. Managers with at Least 5 Direct Reports
 SELECT
   e1.name
