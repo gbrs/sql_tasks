@@ -206,6 +206,25 @@ ORDER BY
   id
 
 
+1045. Customers Who Bought All Products
+WITH distincts AS (
+  SELECT
+    DISTINCT
+    customer_id,
+    product_key
+  FROM
+    Customer
+)
+SELECT
+  customer_id
+FROM
+  distincts
+GROUP BY
+  customer_id
+HAVING
+  COUNT(*) = (SELECT COUNT(*) FROM Product)
+
+
 1068. Product Sales Analysis I
 SELECT
   product_name,
