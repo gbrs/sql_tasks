@@ -1,0 +1,40 @@
+2.2
+пользователь делает заказ 28-го, но отменяет его 29-го и больше заказов 29-го не делает.
+Он в этом коде не считается, а должен.
+with
+    t1 as
+    (select
+        creation_time::date date,
+        order_id,
+        unnest(product_ids) as product_id
+    from orders)
+
+    , t2 as
+    (select
+        date,
+        t1.product_id,
+        price,
+        order_id,
+        user_id
+    from t1  -- поскольку дату заказа берем по его созданию, то информация о времени снятия заказа пропадает
+    left join products using (product_id)
+    left join user_actions using (order_id)
+    order by date)
+
+    , t3 as
+    (select
+        date,
+        sum (price) filter (where order_id not in (select order_id from user_actions where action like '%cancel%')) as revenue,
+        count (DISTINCT user_id) as users,  -- вот здесь неправильно считаем
+        count (DISTINCT order_id) filter (where order_id not in (select order_id from user_actions where action like '%cancel%')) as total_orders,
+        count (DISTINCT user_id) filter (where order_id not in (select order_id from user_actions where action like '%cancel%')) as paying_users
+    from t2
+    group by date)
+
+select
+    date,
+    round (revenue::decimal/users, 2) as arpu,
+    round (revenue::decimal/paying_users,2) as arppu,
+    round (revenue::decimal/total_orders,2) as aov
+from t3
+order by date
