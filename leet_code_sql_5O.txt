@@ -373,6 +373,27 @@ GROUP BY
   query_name
 
 
+1204. Last Person to Fit in the Bus
+WITH cum_weights AS (
+  SELECT
+    person_name,
+    SUM(weight) OVER(ORDER BY turn) cum_weight
+  FROM
+    queue
+)
+
+SELECT
+  person_name
+FROM
+  cum_weights
+WHERE
+  cum_weight <= 1000
+ORDER BY
+  cum_weight DESC
+LIMIT
+  1
+
+
 1211-2. Queries Quality and Percentage
 -- PosgreSQL
 SELECT
