@@ -104,6 +104,39 @@ WHERE
   OR referee_id is NULL
 
 
+585. Investments in 2016
+WITH
+  unique_cordinate_users as (
+    SELECT
+      pid
+    FROM
+      Insurance
+    GROUP BY
+      lat, lon
+    HAVING
+      COUNT(pid) = 1
+  ),
+
+  unique_tivs as (
+    SELECT
+      pid
+    FROM
+      Insurance
+    GROUP BY
+      tiv_2015
+    HAVING
+      COUNT(pid) = 1
+  )
+
+SELECT
+  ROUND(SUM(tiv_2016), 2) tiv_2016
+FROM
+  Insurance
+WHERE
+  pid IN (SELECT * FROM unique_cordinate_users)
+  AND pid NOT IN (SELECT * FROM unique_tivs)
+
+
 595. Big Countries
 SELECT
   name,
