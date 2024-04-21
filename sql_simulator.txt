@@ -1780,6 +1780,30 @@ LIMIT
   1000
 
 
+8.15
+with splited_orders as (
+    SELECT
+        creation_time::date as date,
+        unnest (product_ids) as product_id
+    FROM   orders o
+    WHERE  not exists (SELECT order_id
+                       FROM   user_actions ua
+                       WHERE  ua.order_id = o.order_id
+                                and action = 'cancel_order')
+)
+
+SELECT
+    date,
+    sum(price) revenue
+FROM
+    splited_orders
+    INNER JOIN products using (product_id)
+GROUP BY
+    date
+ORDER BY
+    date
+
+
 8.16
 WITH splited_orders AS (
   SELECT
