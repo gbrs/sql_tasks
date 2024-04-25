@@ -1,3 +1,75 @@
+1.5  meowbite
+with
+    t as (
+        select
+            time::DATE as date,
+            count(*) as t1
+        from
+            user_actions
+        where
+            order_id in (select order_id from user_actions group by order_id having count(*)<2)
+        group by
+            time::DATE
+    ),
+
+    t1 as (
+        select
+            date,
+            count(user_id) as t2
+        from (
+            select user_id, min(time::date) as date
+            from user_actions
+            where order_id in (select order_id from user_actions group by order_id having count(*)<2)
+            group by user_id
+            ) x
+        group
+            by date
+    ),
+
+    t2 as (
+        select
+            time::date as date,
+            count(distinct order_id) as t3
+        from (
+            select
+                *,
+                RANK() over(partition by user_id order by time::date asc) as rnk
+            from
+                (select
+                    time::date,
+                    user_id,
+                    order_id,
+                    count(action) as cnt
+                from
+                    user_actions
+                group by
+                    time::date,
+                    user_id,
+                    order_id
+                ) x
+            ) x1
+        where
+            rnk = 1
+            and cnt = 1
+        group by
+            time::date
+    )
+
+select
+    t.date,
+    t1 as orders,
+    t2 as first_orders ,
+    t3 as new_users_orders ,
+    round((t2::decimal/t1::decimal) * 100, 2) as first_orders_share,
+    round((t3::decimal/t1::decimal) * 100, 2) as new_users_orders_share
+from
+    t
+    join t1 on t.date=t1.date
+    join t2 on t1.date=t2.date
+order by
+    1
+
+
 2.2
 пользователь делает заказ 28-го, но отменяет его 29-го и больше заказов 29-го не делает.
 Он в этом коде не считается, а должен.
