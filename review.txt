@@ -1,3 +1,37 @@
+1.5
+Количество заказов вы считаете, вроде, верно - с учетом отмен.
+Но первый день пользователя в сервисе надо выяснять *без* их учета.
+Я, вроде, использовал WHERE IN, а стоило, как здесь сделать LEFT JOIN.
+with
+not_cancel as (
+SELECT DATE(time) AS date, user_id, order_id
+FROM   user_actions
+WHERE  order_id not in (SELECT order_id
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order')),
+
+subquery1 AS (
+SELECT date, user_id
+FROM (
+    SELECT DATE(time) AS date, user_id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY time)
+    FROM user_actions
+    ORDER BY user_id, date
+    ) t
+WHERE row_number = 1
+ORDER BY user_id, date),
+
+subquery2 AS (
+SELECT date, user_id, COUNT(order_id)
+FROM not_cancel
+GROUP BY user_id, date
+ORDER BY user_id, date)
+
+SELECT A.date, SUM(coalesce(B.count, 0))
+FROM subquery1 AS A
+LEFT JOIN subquery2 AS B
+ON A.user_id = B.user_id AND A.date = B.date
+GROUP BY A.date
+
 2.2
 пользователь делает заказ 28-го, но отменяет его 29-го и больше заказов 29-го не делает.
 Он в этом коде не считается, а должен.
