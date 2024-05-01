@@ -23,6 +23,22 @@ WHERE
   AND l2.num = l3.num
 
 
+185. Department Top Three Salaries
+SELECT
+  dep.name Department,
+  em.name Employee,
+  em.salary Salary
+FROM
+  Employee em
+  LEFT JOIN Employee emp ON em.departmentId = emp.departmentId AND em.salary <= emp.salary
+  INNER JOIN Department dep ON emp.departmentId = dep.id
+GROUP BY
+  Department,
+  em.name
+HAVING
+  COUNT(DISTINCT emp.salary) <= 3
+
+
 196. Delete Duplicate Emails
 DELETE
   p1
