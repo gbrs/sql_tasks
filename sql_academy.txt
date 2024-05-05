@@ -491,6 +491,11 @@ SET member_name = 'Andie Anthony'
 WHERE member_name = 'Andie Quincey'
 
 
+54
+DELETE FROM FamilyMembers
+WHERE member_name LIKE '%Quincey%'
+
+
 56
 DELETE FROM Trip
 WHERE town_from = 'Moscow'
@@ -506,21 +511,14 @@ WHERE
 
 
 61
-НЕ РЕШИЛ!!!!!!!!
 SELECT
-  rm.*,
-  re.end_date,
-  re.start_date,
-  (re.end_date - re.start_date) / 60 / 60 / 24,
-  WEEK(re.start_date),
-  WEEK(re.end_date)
+  DISTINCT rms.*
 FROM
-  Rooms rm
-  JOIN Reservations re
+  Reservations res
+  INNER JOIN Rooms rms ON res.room_id = rms.id
 WHERE
-  WEEK(re.start_date) <= 12
-  AND WEEK(re.end_date) >= 12
-  AND (YEAR(re.start_date) = 2020 OR YEAR(re.end_date) = 2020)
+  DAYOFYEAR(start_date) < 85
+  AND DAYOFYEAR(end_date) > 77
 
 
 62
@@ -673,6 +671,42 @@ SELECT
   IF (id in (SELECT user_id FROM Reservations), 1, 0) is_tenant
 FROM
   Users
+
+
+94
+WITH double_customers AS (
+    (
+        SELECT
+          pu.customer_key
+        FROM
+          Purchase pu
+          INNER JOIN Product pr USING (product_key)
+        WHERE
+          MONTH(date) = 3
+          AND YEAR(date) = 2024
+          AND name = 'Laptop'
+    )
+
+    INTERSECT
+
+    (
+        SELECT
+          pu.customer_key
+        FROM
+          Purchase pu
+          INNER JOIN Product pr USING (product_key)
+        WHERE
+          MONTH(date) = 3
+          AND YEAR(date) = 2024
+          AND name = 'Monitor'
+    )
+)
+
+SELECT
+    name
+FROM
+    double_customers dc
+    INNER JOIN Customer cu USING (customer_key)
 
 
 99
