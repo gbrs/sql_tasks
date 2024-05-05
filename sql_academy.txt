@@ -413,6 +413,17 @@ ORDER BY
   last_name
 
 
+46
+SELECT
+  DISTINCT name
+FROM
+  Class
+  INNER JOIN Schedule ON Class.id = Schedule.class
+  INNER JOIN Teacher ON Schedule.teacher = Teacher.id
+WHERE
+  last_name = 'Krauze'
+
+
 48
 SELECT
   cls.name,
