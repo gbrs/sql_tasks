@@ -663,3 +663,16 @@ SELECT
 FROM
   Users
 
+
+99
+SELECT
+  SUM(price * items) income_from_female
+FROM
+  Purchases
+WHERE
+  user_gender = 'female'
+  OR user_gender = 'f'
+
+
+
+
