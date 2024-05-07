@@ -673,6 +673,18 @@ FROM
   Users
 
 
+79
+SELECT
+    id,
+    home_type,
+    IF(
+        has_tv = 1 AND has_internet = 1,
+        0.9 * price,
+        price) price
+FROM
+    Rooms
+
+
 94
 WITH double_customers AS (
     (
