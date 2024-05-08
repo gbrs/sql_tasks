@@ -424,6 +424,17 @@ WHERE
   last_name = 'Krauze'
 
 
+47
+SELECT
+    COUNT(*) count
+FROM
+    Schedule s
+    INNER JOIN Teacher t ON s.teacher = t.id
+WHERE
+    last_name = 'Krauze'
+    AND s.date = '2019-08-30'
+
+
 48
 SELECT
   cls.name,
