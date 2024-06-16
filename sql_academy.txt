@@ -742,5 +742,11 @@ WHERE
   OR user_gender = 'f'
 
 
-
+103
+SELECT
+    name
+FROM
+    Employee e
+WHERE
+    e.salary > (SELECT salary FROM Employee ee WHERE ee.id = e.chief_id)
 
