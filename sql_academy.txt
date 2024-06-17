@@ -684,6 +684,15 @@ FROM
   Users
 
 
+78
+SELECT
+    *
+FROM
+    Users
+WHERE
+    email LIKE '%@hotmail.com'
+
+
 79
 SELECT
     id,
