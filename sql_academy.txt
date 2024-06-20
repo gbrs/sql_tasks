@@ -737,6 +737,36 @@ FROM
     Rooms
 
 
+80
+CREATE VIEW Verified_Users AS
+SELECT
+    id,
+    name,
+    email
+FROM
+    Users
+WHERE
+    email_verified_at IS NOT NULL
+
+
+93
+WITH ages AS (
+    SELECT
+        age
+    FROM
+        Customer cu
+        INNER JOIN Purchase pu USING (customer_key)
+        INNER JOIN Product pr USING (product_key)
+    WHERE
+        pr.name = 'Smartwatch' AND
+        pu.date > '2024-01-01'
+    GROUP BY
+        customer_key
+)
+
+SELECT AVG(age) average_age FROM ages
+
+
 94
 WITH double_customers AS (
     (
