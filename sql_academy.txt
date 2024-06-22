@@ -413,6 +413,25 @@ ORDER BY
   last_name
 
 
+45
+WITH counter as (
+    SELECT
+        classroom,
+        COUNT(*) cnt
+    FROM
+        Schedule
+    GROUP BY
+        classroom
+)
+
+SELECT
+    classroom
+FROM
+    counter
+WHERE
+    cnt = (SELECT MAX(cnt) FROM counter)
+
+
 46
 SELECT
   DISTINCT name
@@ -522,6 +541,31 @@ WHERE member_name = 'Andie Quincey'
 54
 DELETE FROM FamilyMembers
 WHERE member_name LIKE '%Quincey%'
+
+
+55
+WITH
+    counter AS (
+        SELECT
+            company,
+            COUNT(*) cnt
+        FROM
+            Trip
+        GROUP BY
+            company
+    ),
+
+    min_companies AS (
+        SELECT
+            company
+        FROM
+            counter
+        WHERE
+            cnt = (SELECT MIN(cnt) FROM counter)
+    )
+
+DELETE FROM Company
+WHERE id IN (SELECT * FROM min_companies)
 
 
 56
