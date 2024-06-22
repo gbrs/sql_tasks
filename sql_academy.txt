@@ -803,6 +803,20 @@ FROM
     INNER JOIN Customer cu USING (customer_key)
 
 
+97
+SELECT
+    city,
+    COUNT(warehouse_id) warehouse_count
+FROM
+    Warehouses
+WHERE
+    date_close IS NULL
+GROUP BY
+    city
+HAVING
+    warehouse_count > 80
+
+
 99
 SELECT
   SUM(price * items) income_from_female
@@ -811,6 +825,25 @@ FROM
 WHERE
   user_gender = 'female'
   OR user_gender = 'f'
+
+
+101
+SELECT
+    user_id,
+    item
+FROM
+    Transactions
+WHERE
+    (user_id, transaction_ts) IN
+    (
+        SELECT
+            user_id,
+            MIN(transaction_ts)
+        FROM
+            Transactions
+        GROUP BY
+            user_id
+    )
 
 
 103
