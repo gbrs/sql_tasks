@@ -581,6 +581,25 @@ SET
     end_pair = ADDDATE(end_pair, INTERVAL 30 MINUTE)
 
 
+58
+INSERT INTO Reviews
+VALUES
+    (
+    -- (SELECT COUNT(*) + 1 FROM Reviews),
+    23,
+    (SELECT
+        re.id
+    FROM
+        Reservations re
+        INNER JOIN Rooms ro ON re.room_id = ro.id
+        INNER JOIN Users us ON re.user_id = us.id
+    WHERE
+        ro.address = '11218, Friel Place, New York'
+        AND us.name = 'George Clooney'),
+    5
+    )
+
+
 59
 SELECT
   *
