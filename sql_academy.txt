@@ -609,6 +609,27 @@ WHERE
   phone_number LIKE '%+375%'
 
 
+60
+WITH tc AS (
+    SELECT DISTINCT
+        teacher,
+        class
+    FROM
+        Schedule
+    WHERE
+        class IN (SELECT id FROM Class WHERE name LIKE '11%')
+)
+
+SELECT
+    teacher
+FROM
+    tc
+GROUP BY
+    teacher
+HAVING
+    COUNT(class) = (SELECT COUNT(id) FROM Class WHERE name LIKE '11%')
+
+
 61
 SELECT
   DISTINCT rms.*
