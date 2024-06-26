@@ -751,6 +751,17 @@ FROM
     INNER JOIN Users usr ON res.user_id = usr.id
 
 
+69
+SELECT
+    rm.owner_id,
+    COALESCE(SUM(res.total), 0) total_earn
+FROM
+    Rooms rm
+    LEFT JOIN Reservations res ON rm.id = res.room_id
+GROUP BY
+    rm.owner_id
+
+
 70
 SELECT
   CASE
