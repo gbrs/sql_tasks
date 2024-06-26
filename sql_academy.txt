@@ -727,6 +727,30 @@ FROM
   Trip
 
 
+68
+WITH last_reservations AS (
+    SELECT
+        room_id,
+        MAX(end_date) end_date
+    FROM
+        Reservations
+    GROUP BY
+        room_id
+)
+
+
+SELECT
+    lr.room_id,
+    name,
+    lr.end_date
+FROM
+    last_reservations lr
+    INNER JOIN Reservations res ON
+            lr.room_id = res.room_id
+            AND lr.end_date = res.end_date
+    INNER JOIN Users usr ON res.user_id = usr.id
+
+
 70
 SELECT
   CASE
