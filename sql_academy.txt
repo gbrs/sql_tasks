@@ -738,7 +738,6 @@ WITH last_reservations AS (
         room_id
 )
 
-
 SELECT
     lr.room_id,
     name,
@@ -774,6 +773,34 @@ FROM
   Rooms
 GROUP BY
   category
+
+
+71
+WITH
+    usr AS (
+        SELECT
+            DISTINCT (user_id) user
+        FROM
+            Reservations
+
+        UNION
+
+        SELECT
+            DISTINCT (owner_id) user
+        FROM
+            Reservations res
+            INNER JOIN Rooms rms ON res.room_id = rms.id
+    )
+
+
+SELECT
+    ROUND(
+        100.0 * (SELECT COUNT(*) FROM usr) /
+        COUNT(*),
+        2
+    ) percent
+FROM
+    Users
 
 
 72
