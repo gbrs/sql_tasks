@@ -1,3 +1,31 @@
+10.13
+не совсем понимаю зачем нужен запрос t.
+А если 2 разных пользователя одновременно совершат заказ? В вашем случае, вроде, даже три.
+select COUNT(*)
+from orders
+where order_id between 35758 and 35760
+group by creation_time
+Поэтому скачок от 7 заказов сразу в 10. У двух других пользователей, наверняка, тоже так
+select user_id, order_id, action, time,
+        coalesce(created_orders, 0)::int created_orders,
+        coalesce(canceled_orders, 0)::int canceled_orders,
+        coalesce(round(canceled_orders/(created_orders), 2), 0) cancel_rate
+from
+        (select user_id, order_id, action, time,
+                sum(count_order) filter (where action='create_order')
+                over (partition by user_id order by time rows between unbounded preceding and current row) created_orders,
+                sum(count_order) filter (where action='cancel_order')
+                over (partition by user_id order by time rows between unbounded preceding and current row) canceled_orders,
+                sum(count_order)
+                over (partition by user_id order by time rows between unbounded preceding and unbounded following) sum_user_orders
+        from
+            (select user_id, order_id, action, time,
+                    count(order_id) over (partition by time) count_order
+            from user_actions
+            order by  user_id, order_id, time) as t) as t2
+LIMIT 1000
+
+
 1.5 opiumbit
 Количество заказов вы считаете, вроде, верно - с учетом отмен.
 Но первый день пользователя в сервисе надо выяснять *без* их учета.
