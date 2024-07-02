@@ -1,0 +1,8 @@
+[Тестовое Альфа-банк] Покупки товара после 10 октября
+SELECT
+  COUNT(DISTINCT user_id)
+FROM
+  Purchases
+WHERE
+  created_at >= '2021-10-10'
+  AND sku_id = 5
