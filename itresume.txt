@@ -6,3 +6,39 @@ FROM
 WHERE
   created_at >= '2021-10-10'
   AND sku_id = 5
+
+[Тестовое Тинькофф] Недозвонившиеся клиенты
+SELECT
+  start_dttm date,
+  last_nm,
+  first_nm,
+  middle_nm
+FROM
+  tinkoff.Calls cll
+  LEFT JOIN tinkoff.Customers cst USING (customer_id)
+WHERE
+  cll.dozv_flg = 0
+  AND start_dttm = '2019-05-29'
+
+
+Найти округа, в которых не было покупок
+WITH FAR_COUNTY AS (
+  SELECT
+    COUNTY_CODE
+  FROM
+    COUNTY
+
+  EXCEPT
+
+  SELECT
+    DISTINCT COUNTY_CODE
+  FROM
+    C_ORDERS
+    INNER JOIN CUSTOMER USING(ID_CUSTOMER)
+)
+
+SELECT
+  NAME AS name
+FROM
+  FAR_COUNTY
+  INNER JOIN COUNTY USING (COUNTY_CODE)
