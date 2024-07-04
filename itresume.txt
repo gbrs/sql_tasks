@@ -1,3 +1,5 @@
+https://itresume.ru/problems?tags=SQL&page=1&complexity=1
+
 [Тестовое Альфа-банк] Покупки товара после 10 октября
 SELECT
   COUNT(DISTINCT user_id)
@@ -42,3 +44,17 @@ SELECT
 FROM
   FAR_COUNTY
   INNER JOIN COUNTY USING (COUNTY_CODE)
+
+
+Фильтрация по нескольким условиям
+SELECT
+  an_name,
+  an_price
+FROM
+  Analysis
+WHERE
+  (LOWER(an_name) LIKE '%anti%'
+   OR LOWER(an_name) LIKE '%кровь%')
+  AND an_price < 1000
+ORDER BY
+  an_price DESC
