@@ -46,6 +46,38 @@ FROM
   INNER JOIN COUNTY USING (COUNTY_CODE)
 
 
+Отфильтрованные продажи в период дат
+SELECT
+  LEFT(CAST(ord_datetime AS VARCHAR), 10) ord_date,
+  COUNT(*) cnt
+FROM
+  Orders
+WHERE
+  ord_datetime BETWEEN '2019-10-25' AND '2019-11-02'
+GROUP BY
+  ord_date
+HAVING
+  COUNT(*) > 5
+ORDER BY
+  ord_date
+
+
+Режим хранения анализов
+SELECT
+  ord.ord_id,
+  ord.ord_an,
+  anl.an_name,
+  grp.gr_temp
+FROM
+  Orders ord
+  INNER JOIN Analysis anl ON ord.ord_an = anl.an_id
+  INNER JOIN Groups grp ON anl.an_group = grp.gr_id
+WHERE
+  grp.gr_temp = 22
+ORDER BY
+  ord.ord_id
+
+
 Фильтрация по нескольким условиям
 SELECT
   an_name,
@@ -58,3 +90,4 @@ WHERE
   AND an_price < 1000
 ORDER BY
   an_price DESC
+
