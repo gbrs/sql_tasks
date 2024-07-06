@@ -23,6 +23,38 @@ WHERE
   AND start_dttm = '2019-05-29'
 
 
+Анализы с нечетным ID и заданной себестоимостью
+SELECT
+  an_id,
+  an_name,
+  an_cost
+FROM
+  Analysis
+WHERE
+  MOD(an_id, 2) = 1
+  AND an_cost > 100
+
+
+Найти все пары различных клиентов
+WITH moscow_people AS (
+  SELECT
+    FIRST_NAME
+  FROM
+    CUSTOMER
+  WHERE
+    TOWN = 'Moscow'
+)
+
+SELECT
+  c1.FIRST_NAME customer1,
+  c2.FIRST_NAME customer2
+FROM
+  moscow_people c1,
+  moscow_people c2
+WHERE
+  c1.FIRST_NAME != c2.FIRST_NAME
+
+
 Найти округа, в которых не было покупок
 WITH FAR_COUNTY AS (
   SELECT
@@ -60,6 +92,21 @@ HAVING
   COUNT(*) > 5
 ORDER BY
   ord_date
+
+
+Продажи анализов в течение недели
+SELECT
+  an_name,
+  an_cost,
+  ord_datetime
+FROM
+  Orders ord
+  INNER JOIN Analysis anl ON ord.ord_an = anl.an_id
+WHERE
+  ord_datetime BETWEEN '2020-02-05' AND '2020-02-12'
+ORDER BY
+  ord_datetime,
+  an_cost
 
 
 Режим хранения анализов
