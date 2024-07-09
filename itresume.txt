@@ -9,6 +9,27 @@ WHERE
   created_at >= '2021-10-10'
   AND sku_id = 5
 
+[ Тестовое СБЕР ] Изменение пикового значения
+WITH
+  day_reg AS (
+    SELECT
+    LEFT(CAST(date_joined AS VARCHAR), 10) dt,
+    COUNT(*) cnt
+  FROM
+    users
+  GROUP BY
+    1
+)
+
+SELECT
+  dt,
+  cnt
+FROM
+  day_reg
+WHERE
+  dt BETWEEN '2022-01-01' AND '2022-04-21'
+
+
 [Тестовое Тинькофф] Недозвонившиеся клиенты
 SELECT
   start_dttm date,
