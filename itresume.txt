@@ -11,23 +11,52 @@ WHERE
 
 [ Тестовое СБЕР ] Изменение пикового значения
 WITH
+  all_dates AS (
+    SELECT
+      dt
+    FROM
+      generate_series(
+          '2022-01-01'::date,
+          '2022-01-01'::date + INTERVAL '110 day',
+          '1 day'
+      ) AS dt
+  ),
+
   day_reg AS (
     SELECT
-    LEFT(CAST(date_joined AS VARCHAR), 10) dt,
-    COUNT(*) cnt
+      date_joined::date dt,
+      COUNT(*) cnt
   FROM
     users
   GROUP BY
     1
-)
+  ),
+
+  day_cnt AS (
+    SELECT
+      dt,
+      cnt
+    FROM
+      all_dates
+      LEFT JOIN day_reg USING (dt)
+  ),
+
+  max_cnt AS (
+    SELECT
+      dt,
+      cnt,
+      MAX(cnt) OVER (ORDER BY dt) max_cnt
+    FROM
+      day_cnt
+  )
 
 SELECT
   dt,
-  cnt
+  cnt,
+  max_cnt,
+  COALESCE(cnt, 0) - max_cnt diff
 FROM
-  day_reg
-WHERE
-  dt BETWEEN '2022-01-01' AND '2022-04-21'
+  max_cnt
 
 
 [Тестовое Тинькофф] Недозвонившиеся клиенты
