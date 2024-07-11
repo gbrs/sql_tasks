@@ -1,4 +1,4 @@
-https://itresume.ru/problems?tags=SQL&page=1&complexity=1
+https://itresume.ru/problems?tags=SQL&page=1&complexity=2
 
 [Тестовое Альфа-банк] Покупки товара после 10 октября
 SELECT
@@ -71,6 +71,23 @@ FROM
 WHERE
   cll.dozv_flg = 0
   AND start_dttm = '2019-05-29'
+
+
+[Тестовое Тинькофф] Продажи во время звонка
+SELECT
+  last_nm,
+  first_nm,
+  middle_nm,
+  start_dttm date,
+  open_dt,
+  product_nm
+FROM
+  tinkoff.Calls cll
+  LEFT JOIN tinkoff.Customers cst USING (customer_id)
+WHERE
+  dozv_flg = 1
+  AND start_dttm >= '2020-10-05'
+  AND start_dttm = open_dt
 
 
 Анализы с нечетным ID и заданной себестоимостью
