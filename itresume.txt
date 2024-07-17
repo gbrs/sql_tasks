@@ -161,6 +161,36 @@ ORDER BY
   ord_date
 
 
+Помесячный прирост продаж с разбивкой по группе
+WITH cnt AS (
+  SELECT
+    EXTRACT(YEAR FROM o.ord_datetime) AS year,
+    EXTRACT(MONTH FROM o.ord_datetime) AS month,
+    g.gr_id AS grp,
+    COUNT(*) cnt
+  FROM
+    Orders o
+    INNER JOIN Analysis a ON (o.ord_an = a.an_id)
+    INNER JOIN Groups g ON (a.an_group = g.gr_id)
+  GROUP BY
+    1, 2, 3
+)
+
+SELECT
+  year::VARCHAR,
+  CASE
+    WHEN month < 10 THEN '0'
+    ELSE ''
+  END
+  || month::VARCHAR AS month,
+  grp AS group,
+  (SUM(cnt) OVER (PARTITION BY grp, year ORDER BY month))::INTEGER
+FROM
+  cnt
+ORDER BY
+  3, 1, 2
+
+
 Продажи анализов в течение недели
 SELECT
   an_name,
