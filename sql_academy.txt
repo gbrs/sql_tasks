@@ -1000,3 +1000,13 @@ FROM
 WHERE
     e.salary > (SELECT salary FROM Employee ee WHERE ee.id = e.chief_id)
 
+
+109
+SELECT
+  co.name country_name
+FROM
+  Cities ci
+  INNER JOIN Regions re ON ci.regionid = re.id
+  INNER JOIN Countries co ON re.countryid = co.id
+WHERE
+  ci.name = 'Salzburg'
