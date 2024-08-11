@@ -1,3 +1,77 @@
+7.20
+-- С датой. Можно, например, наверное, 'YYYY-MM-DD'. Но можно просто: min(time)::date
+-- По второму полю идею не совсем понял. Учитывается ли, что клиент мог первый раз заказать и отменить,
+-- но в тот же день заказать (и не отменить) еще раз? Считается ли каждый клиент только один раз?
+SELECT
+  TO_CHAR(time1, 'YYYY/MM/DD') AS date,
+  COUNT(order_id) AS first_orders
+FROM
+  (
+    SELECT
+      MIN(time) AS time1,
+      order_id
+    FROM
+      user_actions
+    WHERE
+      user_id IN (
+        SELECT
+          user_id
+        FROM
+          user_actions
+        WHERE
+          action NOT IN ('cancel_order')
+        GROUP BY
+          user_id
+        HAVING
+          COUNT(DISTINCT action) = 1
+      )
+    GROUP BY
+      order_id
+  ) subquery
+GROUP BY
+  date
+ORDER BY
+  date
+
+
+7.23
+-- а случаи, когда у вас в заказе два дорогих товара обрабатываются?
+-- Достаточно добавить distinct в основном selectе
+with t as (
+  Select
+    distinct order_id,
+    product_ids,
+    unnest(product_ids) product_id
+  from
+    orders
+),
+t2 as (
+  Select
+    order_id,
+    product_ids,
+    product_id
+  from
+    t
+)
+Select
+  order_id,
+  product_ids
+from
+  t2
+where
+  product_id in (
+    Select
+      product_id
+    from
+      products
+    order by
+      price desc
+    limit
+      5
+  )
+order by
+
+
 10.13
 не совсем понимаю зачем нужен запрос t.
 А если 2 разных пользователя одновременно совершат заказ? В вашем случае, вроде, даже три.
