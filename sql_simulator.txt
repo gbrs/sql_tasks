@@ -1233,6 +1233,7 @@ ORDER BY
 
 
 7.20
+-- в один момент времени может создаваться несколько заказов (одним или несколькими пользователями)
 WITH not_canceled_orders AS (
     SELECT
         min(time)::DATE date
