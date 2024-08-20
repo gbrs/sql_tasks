@@ -222,6 +222,36 @@ ORDER BY
   ord.ord_id
 
 
+Рост продаж по сравнению с предыдущим днем
+WITH
+  date_revenue as (
+    SELECT
+      date,
+      SUM(value) as value
+    FROM
+      sales
+   GROUP BY DATE
+  ),
+
+  lags as (
+    SELECT
+      date,
+      value,
+      COALESCE(LAG(value) OVER(ORDER BY date), 0) lg
+    FROM
+      date_revenue
+  )
+
+SELECT
+  *
+FROM
+  lags
+WHERE
+  value > lg
+ORDER BY
+  date
+
+
 Фильтрация по нескольким условиям
 SELECT
   an_name,

@@ -1,3 +1,22 @@
+10.18
+-- перед нахождением медианы, вроде, по цене отсортировать надо.
+-- Интересно, какой проверочный тест на нечетное число строк... (у чела код прошел тест на нечетное число строк)
+WITH t3 AS (SELECT RANK() OVER(ORDER BY order_id) AS rank_id, date, order_price
+FROM (SELECT DISTINCT order_id, date, SUM(price) OVER (PARTITION BY order_id) AS order_price
+FROM (SELECT order_id, creation_time::DATE AS date, unnest(product_ids) AS product_id
+FROM orders
+WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')) t1
+LEFT JOIN products USING (product_id)) t2)
+
+
+SELECT
+    DISTINCT CASE
+    WHEN (SELECT MAX(rank_id) FROM t3) % 2 = 1 THEN (SELECT order_price FROM t3 WHERE rank_id = (SELECT MAX(rank_id) FROM t3) / 2 + 1)
+    WHEN (SELECT MAX(rank_id) FROM t3) % 2 = 0 THEN ((SELECT order_price FROM t3 WHERE rank_id = (SELECT MAX(rank_id) FROM t3) / 2) + (SELECT order_price FROM t3 WHERE rank_id = (SELECT MAX(rank_id) FROM t3) / 2 + 1))::DECIMAL / 2.0
+    END AS median_price
+FROM t3
+
+
 5.16
 -- Прикольно:
 SELECT(
