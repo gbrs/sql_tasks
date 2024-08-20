@@ -1,3 +1,13 @@
+5.16
+-- Прикольно:
+SELECT(
+    (SELECT COUNT(DISTINCT user_id) FROM user_actions),
+    (SELECT COUNT(DISTINCT user_id) FROM users)
+)
+-- (21401,20331)
+-- Используйте только таблицу user_actions
+
+
 7.20
 -- С датой. Можно, например, наверное, 'YYYY-MM-DD'. Но можно просто: min(time)::date
 -- По второму полю идею не совсем понял. Учитывается ли, что клиент мог первый раз заказать и отменить,
