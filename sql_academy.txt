@@ -1010,3 +1010,14 @@ FROM
   INNER JOIN Countries co ON re.countryid = co.id
 WHERE
   ci.name = 'Salzburg'
+
+
+111
+SELECT
+    r.name region_name,
+    SUM(c.population) total_population
+FROM
+    Regions r
+    INNER JOIN Cities c ON c.regionid = r.id
+GROUP BY
+    r.name
