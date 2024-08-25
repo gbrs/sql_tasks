@@ -1,3 +1,90 @@
+4.3
+-- верхняя 'с' - русская, а нижняя - английская
+SELECT productid, (Знак нижнего подчеркивания перед айди есть, но нормально не отображается отчего-то)
+       name
+FROM   products
+WHERE  name like 'с%'
+   and name not like 'c%  %';
+
+2.4
+-- уберите TRIM, оставив только TO_CHAR. Не знаю, что он делает, но, похоже, задачу сдать мешает
+WITH
+new_users_t AS (
+    SELECT
+        COUNT(DISTINCT user_id) AS new_users,
+        TRIM(BOTH FROM TO_CHAR(time, 'Day')) AS week_days,
+        DATE_PART('isodow', time) AS isodow
+    FROM
+        user_actions
+    WHERE
+        time::date > '2022-08-25' AND time::date < '2022-09-09'
+    GROUP BY
+        week_days,
+        isodow
+),
+arppu_t AS (
+    SELECT
+        COUNT(DISTINCT user_id) AS arppu,
+        TRIM(BOTH FROM TO_CHAR(time, 'Day')) AS week_days
+    FROM
+        user_actions
+    WHERE
+        order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+        AND time::date > '2022-08-25'
+        AND time::date < '2022-09-09'
+    GROUP BY
+        week_days
+),
+order_per_day_t AS (
+    SELECT
+        COUNT(order_id) AS order_per_day,
+        TRIM(BOTH FROM TO_CHAR(creation_time, 'Day')) AS week_days
+    FROM
+        orders
+    WHERE
+        order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+        AND creation_time::date > '2022-08-25'
+        AND creation_time::date < '2022-09-09'
+    GROUP BY
+        week_days
+),
+revenue_per_day_t AS (
+    SELECT
+        A.week_days,
+        SUM(B.price) AS revenue_per_day
+    FROM (
+        SELECT
+            TRIM(BOTH FROM TO_CHAR(creation_time, 'Day')) AS week_days,
+            UNNEST(product_ids) AS product_id
+        FROM
+            orders
+        WHERE
+            order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+            AND creation_time::date > '2022-08-25'
+            AND creation_time::date < '2022-09-09'
+    ) AS A
+    LEFT JOIN
+        products AS B ON A.product_id = B.product_id
+    GROUP BY
+        A.week_days
+)
+SELECT
+    A.week_days AS weekday,
+    ROUND(A.isodow::decimal,1) AS weekday_number,
+    ROUND(C.revenue_per_day::decimal / A.new_users, 2) AS arpu,
+    ROUND(C.revenue_per_day::decimal / D.arppu, 2) AS arppu,
+    ROUND(C.revenue_per_day::decimal / B.order_per_day, 2) AS aov
+FROM
+    new_users_t AS A
+FULL JOIN
+    order_per_day_t AS B ON A.week_days = B.week_days
+FULL JOIN
+    revenue_per_day_t AS C ON A.week_days = C.week_days
+FULL JOIN
+    arppu_t AS D ON A.week_days = D.week_days
+ORDER BY
+    A.isodow;
+
 10.18
 -- перед нахождением медианы, вроде, по цене отсортировать надо.
 -- Интересно, какой проверочный тест на нечетное число строк... (у чела код прошел тест на нечетное число строк)
