@@ -1,3 +1,97 @@
+1.4
+-- 'Долю пользователей, сделавших в этот день...`. А вы считаете нарастающим итогом пользователей.
+-- долго смотрел и не видел, что человек считает не тот показатель. Читать условие задачи.
+WITH tab1 AS ( -- дата, число пользователей нарастающим итогом
+  SELECT
+    date,
+    SUM(paying_users) OVER(
+      ORDER BY
+        date
+    ):: integer AS total_users
+  FROM
+    (
+      SELECT
+        date,
+        count(user_id) as paying_users
+      FROM
+        (
+          SELECT
+            time :: date as date,
+            user_id
+          FROM
+            user_actions
+          WHERE
+            order_id not in (
+              SELECT
+                order_id
+              FROM
+                user_actions
+              WHERE
+                action = 'cancel_order'
+            )
+          GROUP BY
+            date,
+            user_id
+          ORDER BY
+            date,
+            user_id
+        ) t1 -- дата, юзер для неотмененнных
+      GROUP BY
+        date
+    ) z1 -- дата, число пользователей
+),
+
+tab2 AS ( -- , дата, количество однозаказников нарастающим итогом
+  SELECT
+    DISTINCT date,
+    COUNT(daily_orders_count) OVER (
+      ORDER BY
+        date
+    ) AS single_order_users ,
+    COUNT(*) OVER (
+      ORDER BY
+        date
+    ) total_users
+  FROM
+    (
+      SELECT
+        DISTINCT user_id,
+        time :: date AS date,
+        COUNT(user_id) OVER(PARTITION BY user_id, time :: date) AS daily_orders_count
+      FROM
+        user_actions
+      WHERE
+        order_id NOT IN (
+          SELECT
+            order_id
+          FROM
+            user_actions
+          WHERE
+            action = 'cancel_order'
+        )
+      ORDER BY
+        date
+    ) t2 -- дата, юзер, количество его заказов в день
+  WHERE
+    daily_orders_count = 1
+)
+SELECT
+  date,
+  ROUND(
+    single_order_users / total_users :: DECIMAL * 100,
+    2
+  ) AS single_order_users_share,
+  100 - ROUND(
+    single_order_users / total_users :: DECIMAL * 100,
+    2
+  ) AS several_orders_users_share
+FROM
+  tab2
+  JOIN tab1 USING(date)
+ORDER BY
+  date
+
+
 4.3
 -- верхняя 'с' - русская, а нижняя - английская
 SELECT productid, (Знак нижнего подчеркивания перед айди есть, но нормально не отображается отчего-то)
