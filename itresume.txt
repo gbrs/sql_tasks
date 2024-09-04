@@ -145,6 +145,17 @@ FROM
   INNER JOIN COUNTY USING (COUNTY_CODE)
 
 
+Нумерация строк по дате
+SELECT
+  ord_datetime::DATE dt,
+  ord_datetime,
+  ord_id,
+  ord_an,
+  ROW_NUMBER() OVER(PARTITION BY ord_datetime::DATE ORDER BY ord_datetime DESC)
+FROM
+  Orders
+
+
 Отфильтрованные продажи в период дат
 SELECT
   LEFT(CAST(ord_datetime AS VARCHAR), 10) ord_date,
@@ -204,6 +215,14 @@ WHERE
 ORDER BY
   ord_datetime,
   an_cost
+
+
+Проранжировать баллы
+SELECT
+  Score score,
+  DENSE_RANK() OVER(ORDER BY Score DESC) rnk
+FROM
+  Scores
 
 
 Режим хранения анализов
