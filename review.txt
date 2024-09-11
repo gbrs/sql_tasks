@@ -1,3 +1,24 @@
+6.19
+-- в знаменателе тоже фильтр на создание поставьте. Почему - не знаю.
+-- Возможно это связано с переездами заказов через полночь.
+select
+    DATE_PART('isodow', time)::integer as weekday_number,
+    to_char(time, 'Dy') as weekday,
+    count(DISTINCT order_id) filter(where action='create_order') as created_orders,
+    count(DISTINCT order_id) filter(where action='cancel_order') as canceled_orders,
+    (count(DISTINCT order_id) filter(where action='create_order') - count(DISTINCT order_id) filter(where action='cancel_order')) as actual_orders,
+
+    round(((count(DISTINCT order_id) filter(where action='create_order') - count(DISTINCT order_id) filter(where action='cancel_order'))/count(DISTINCT order_id)::decimal),3) as success_rate
+
+from user_actions
+
+where time BETWEEN '2022-08-24' and '2022-09-07'
+
+group by to_char(time, 'Dy'), DATE_PART('isodow', time)::integer
+
+order by weekday_number
+
+
 /*
 какая-то задача со стороны.
 Назначить ранги пользователям по имеющейся таблице:
