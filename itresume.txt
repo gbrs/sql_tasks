@@ -76,6 +76,19 @@ FROM
   max_cnt
 
 
+[Тестовое Тинькофф] Информация о счетах клиентов
+SELECT
+  EXTRACT(MONTH FROM date) AS month,
+  COUNT(DISTINCT customer_id)
+      FILTER(WHERE acount_status IN ('новый', 'активирован', 'утилизирован')) working,
+  COUNT(DISTINCT customer_id)
+      FILTER(WHERE acount_status IN ('заблокирован', 'закрыт')) non_working
+FROM
+  tinkoff.account_statuses
+GROUP BY
+  month
+
+
 [Тестовое Тинькофф] Недозвонившиеся клиенты
 SELECT
   start_dttm date,
@@ -105,6 +118,18 @@ WHERE
   dozv_flg = 1
   AND start_dttm >= '2020-10-05'
   AND start_dttm = open_dt
+
+
+[Тестовое Тинькофф] Процент дозвона
+SELECT
+  start_dttm::DATE date,
+  1.0 * COUNT(*) FILTER(WHERE dozv_flg = 1) / COUNT(*) sla
+FROM
+  tinkoff.Calls
+WHERE
+  start_dttm >= '2020-10-01'
+GROUP BY
+  date
 
 
 Анализы с нечетным ID и заданной себестоимостью
