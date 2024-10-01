@@ -214,6 +214,21 @@ ORDER BY
   ord_date
 
 
+Поведение клиентов
+SELECT
+  id_customer,
+  ROUND(SUM(total_price)) total_sales,
+  ROUND(AVG(quantity), 2) avg_quantity,
+  MAX(date_order) recent_order_date
+FROM
+    C_ORDERS
+    INNER JOIN ORDER_DETAILS USING (ID_ORDERS)
+GROUP BY
+  id_customer
+ORDER BY
+  total_sales DESC
+
+
 Помесячный прирост продаж с разбивкой по группе
 WITH cnt AS (
   SELECT
