@@ -144,6 +144,31 @@ WHERE
   AND an_cost > 100
 
 
+Найти ID с самым большим количеством заказов по годам
+WITH annual_orders AS (
+  SELECT
+    EXTRACT(YEAR FROM ord.ord_datetime)::VARCHAR AS year,
+    anl.an_id,
+    COUNT(DISTINCT ord_id) cnt
+  FROM
+    Analysis anl
+    INNER JOIN Orders ord ON (anl.an_id = ord.ord_an)
+  GROUP BY
+    year,
+    an_id
+)
+
+SELECT
+  *
+FROM
+  annual_orders
+WHERE
+  (year, cnt) IN (SELECT year, MAX(cnt) FROM annual_orders GROUP BY year)
+ORDER BY
+  year,
+  an_id
+
+
 Найти все пары различных клиентов
 WITH moscow_people AS (
   SELECT
