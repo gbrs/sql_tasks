@@ -307,6 +307,18 @@ FROM
   Scores
 
 
+Расположение студентов после пересадки
+SELECT
+  seat,
+  CASE
+    WHEN seat  = (SELECT MAX(seat) FROM Students) AND SEAT % 2 = 1 THEN name
+    WHEN SEAT % 2 = 1 THEN LEAD(name) OVER ()
+    ELSE LAG(name) OVER ()
+  END AS name
+FROM
+  Students
+
+
 Режим хранения анализов
 SELECT
   ord.ord_id,
