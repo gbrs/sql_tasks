@@ -212,6 +212,20 @@ FROM
   INNER JOIN COUNTY USING (COUNTY_CODE)
 
 
+Не менее трех значений подряд
+SELECT
+  DISTINCT l1.num ConsecutiveNums
+FROM
+  Logs l1
+  INNER JOIN Logs l2 ON (l2.id = l1.id + 1)
+  INNER JOIN Logs l3 ON (l3.id = l1.id + 2)
+WHERE
+  l1.num = l2.num
+  AND l1.num = l3.num
+ORDER BY
+  ConsecutiveNums DESC
+
+
 Нумерация строк по дате
 SELECT
   ord_datetime::DATE dt,
