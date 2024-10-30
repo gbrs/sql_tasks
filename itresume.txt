@@ -313,6 +313,20 @@ ORDER BY
   an_cost
 
 
+Продажи за 2019 и 2020
+SELECT
+  anl.an_id an,
+  COUNT(ord_datetime) FILTER (WHERE EXTRACT('YEAR' FROM ord_datetime) = 2019) year2019,
+  COUNT(ord_datetime) FILTER (WHERE EXTRACT('YEAR' FROM ord_datetime) = 2020) year2020
+FROM
+  Analysis anl
+  INNER JOIN Orders ord ON (anl.an_id = ord.ord_an)
+GROUP BY
+  an
+ORDER BY
+  an
+
+
 Проранжировать баллы
 SELECT
   Score score,
