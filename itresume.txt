@@ -144,6 +144,25 @@ WHERE
   AND an_cost > 100
 
 
+Группа продаж в течение последнего года
+SELECT
+  ord_an an_id,
+  COUNT(ord_an),
+  CASE
+    WHEN COUNT(ord_an) > 20 THEN 2
+    WHEN COUNT(ord_an) > 10 THEN 1
+    ELSE 0
+   END gr
+FROM
+  Orders
+WHERE
+  ord_datetime BETWEEN '2019-03-01' AND '2020-03-01'
+GROUP BY
+  an_id
+ORDER BY
+  an_id
+
+
 Найти ID с самым большим количеством заказов по годам
 WITH annual_orders AS (
   SELECT
