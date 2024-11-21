@@ -163,6 +163,27 @@ ORDER BY
   an_id
 
 
+Наименее заказываемая группа
+WITH cnt AS (
+  SELECT
+    g.gr_name,
+    COUNT(o.ord_id) ord_count
+  FROM
+    Orders o
+    INNER JOIN Analysis a ON (o.ord_an = a.an_id)
+    INNER JOIN Groups g ON (a.an_group = g.gr_id)
+  GROUP BY
+    g.gr_name
+)
+
+SELECT
+  gr_name
+FROM
+  cnt
+WHERE
+  ord_count = (SELECT min(ord_count) FROM cnt)
+
+
 Найти ID с самым большим количеством заказов по годам
 WITH annual_orders AS (
   SELECT
