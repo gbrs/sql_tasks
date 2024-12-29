@@ -1,0 +1,15 @@
+-- pivot table пол * действие * количество
+SELECT
+    sex,
+    COUNT(action) FILTER (WHERE action = 'create_order') create_number,
+    COUNT(action) FILTER (WHERE action = 'cancel_order') cancel_number
+FROM
+    user_actions
+    INNER JOIN users USING(user_id)
+GROUP BY
+    sex
+
+-- unpivot таблицу пол * действие * количество
+SELECT sex, 'create_order' AS action, create_number FROM wide_table
+UNION
+SELECT sex, 'cancel_order'          , cancel_number FROM wide_table
