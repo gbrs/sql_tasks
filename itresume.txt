@@ -296,7 +296,7 @@ ORDER BY
 Поведение клиентов
 SELECT
   id_customer,
-  ROUND(SUM(total_price)) total_sales,
+  ROUND(SUM(total_price))::INTEGER total_sales,
   ROUND(AVG(quantity), 2) avg_quantity,
   MAX(date_order) recent_order_date
 FROM
@@ -431,6 +431,32 @@ WHERE
   value > lg
 ORDER BY
   date
+
+
+Фиксация входа-выхода сотрудников
+SELECT
+  employee,
+  check_time::VARCHAR,
+  sum::VARCHAR
+FROM
+  (
+    SELECT
+      g1.employee,
+      g2.check_time::DATE,
+      g2.check_time - g1.check_time AS sum
+    FROM
+      gate g1
+      INNER JOIN gate g2 ON(
+          g1.employee = g2.employee
+          AND g1.check_time::DATE = g2.check_time::DATE
+          AND g1.is_entered IS true
+          AND g2.is_entered IS false
+    )
+  ) q
+WHERE
+  EXTRACT(EPOCH FROM sum) / 60 / 60 < 8
+ORDER BY
+  employee
 
 
 Фильтрация по нескольким условиям
