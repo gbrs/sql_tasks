@@ -1,0 +1,45 @@
+
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+Для тренировки таблички, чтобы не объявлять их явно, можно создавать в виде CTEшек:
+with checks as (
+  SELECT 1 as id_check, '2025-01-10 09:32:17' as check_date UNION
+  SELECT 1, '2025-01-10 09:32:17' UNION
+  SELECT 1, '2025-01-10 09:32:17'
+)
+SELECT
+  id_check,
+  TIME(check_date)
+FROM
+  checks
+
+_______________
+
+-- pivot table пол * действие * количество
+SELECT
+    sex,
+    COUNT(action) FILTER (WHERE action = 'create_order') create_number,
+    COUNT(action) FILTER (WHERE action = 'cancel_order') cancel_number
+FROM
+    user_actions
+    INNER JOIN users USING(user_id)
+GROUP BY
+    sex
+
+_______________
+
+-- unpivot таблицу пол * действие * количество
+SELECT sex, 'create_order' AS action, create_number FROM wide_table
+UNION
+SELECT sex, 'cancel_order'          , cancel_number FROM wide_table
