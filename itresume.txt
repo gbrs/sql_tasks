@@ -17,6 +17,21 @@ ORDER BY
   people DESC
 
 
+[Тестовое OZON] Количество людей из Москвы, купивших телефоны в сентябре и октябре
+TODO: только начал - в таблицах нет нужных данных?
+SELECT
+  *
+FROM
+  purchases p
+  INNER JOIN users usr ON usr.id = p.user_id
+  INNER JOIN skus s ON p.sku_id = s.id
+WHERE
+  usr.city = 'Москва'
+  AND s.category = 'Телефон'
+LIMIT
+  5
+
+
 [Тестовое Альфа-банк] Покупки товара после 10 октября
 SELECT
   COUNT(DISTINCT user_id)
@@ -25,6 +40,7 @@ FROM
 WHERE
   created_at >= '2021-10-10'
   AND sku_id = 5
+
 
 [ Тестовое СБЕР ] Изменение пикового значения
 WITH
