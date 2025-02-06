@@ -18,18 +18,21 @@ ORDER BY
 
 
 [Тестовое OZON] Количество людей из Москвы, купивших телефоны в сентябре и октябре
-TODO: только начал - в таблицах нет нужных данных?
 SELECT
-  *
+  TO_CHAR(p.created_at, 'Month') AS month,
+  COUNT(DISTINCT p.user_id) cnt_people
 FROM
-  purchases p
-  INNER JOIN users usr ON usr.id = p.user_id
-  INNER JOIN skus s ON p.sku_id = s.id
+  ozon.purchases p
+  INNER JOIN ozon.users u ON u.id = p.user_id
+  INNER JOIN ozon.skus s ON p.sku_id = s.id
 WHERE
-  usr.city = 'Москва'
+  u.city = 'Москва'
   AND s.category = 'Телефон'
-LIMIT
-  5
+  AND p.created_at BETWEEN '2023-09-01' AND '2023-10-31'
+GROUP BY
+  month
+ORDER BY
+  cnt_people DESC
 
 
 [Тестовое Альфа-банк] Покупки товара после 10 октября
