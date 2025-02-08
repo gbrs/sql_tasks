@@ -1,3 +1,35 @@
+2.1.3
+-- вроде, у вас дважды посчитается человек, который заказал 24-го, а получил заказ 25-го (и больше 25-го не заказывал)
+Добрый день! Подскажите, пожалуйста, модуль 2 урок 1 задание 3 - почему неверно считается Paying_users?
+WITH mt AS (SELECT courier_id, ca.action AS courier_actions, order_id, ca.time, ua.action AS user_actions, user_id,
+min(ca.time) OVER(PARTITION BY courier_id) as min_time_courier,
+min(ua.time) OVER(PARTITION BY user_id) as min_time_user
+FROM user_actions ua
+LEFT JOIN courier_actions ca USING(order_id)
+WHERE order_id NOT IN (SELECT order_id FROM user_actions WHERE action = 'cancel_order'))
+
+SELECT date, paying_users::integer, active_couriers,
+ROUND((paying_users::numeric / total_users::numeric) * 100,2) as paying_users_share,
+ROUND((active_couriers::numeric/ total_couriers::numeric) * 100,2) as active_couriers_share
+
+FROM (
+SELECT date, paying_users, active_couriers,
+SUM(new_users) OVER(rows between unbounded preceding and current row) as total_users,
+SUM(new_couriers) OVER(rows between unbounded preceding and current row) as total_couriers
+
+FROM ( SELECT time::DATE AS date,
+COUNT( DISTINCT  user_id) FILTER (WHERE
+user_actions = 'create_order' ) ::float AS paying_users,--?????
+COUNT(DISTINCT courier_id) FILTER (WHERE order_id IN (SELECT order_id FROM courier_actions WHERE action = 'deliver_order')) AS active_couriers,
+COUNT(DISTINCT user_id) FILTER (WHERE time=  min_time_user) AS new_users,
+COUNT(DISTINCT courier_id) FILTER (WHERE time= min_time_courier) AS new_couriers
+FROM mt
+GROUP BY time::DATE) mt1
+
+) mt2
+ORDER BY date
+
+
 6.19
 -- в знаменателе тоже фильтр на создание поставьте. Почему - не знаю.
 -- Возможно это связано с переездами заказов через полночь.
