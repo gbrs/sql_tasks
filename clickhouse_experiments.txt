@@ -1,0 +1,36 @@
+
+
+
+
+---------------------------
+
+
+
+---------------------------
+
+
+
+---------------------------
+
+
+
+---------------------------
+
+
+
+---------------------------
+
+GROUP BY profile_country WITH TOTALS  -- выведет еще и строку Итого
+
+---------------------------
+
+-- можем использовать поле, созданное в селекте, где угодно
+select
+    *,
+    1.0 * volume * swing_range market_swing_range,
+    high - low as swing_range,
+    min(price) over(partition by extract(year from date)) min_year_price
+from
+    default.stock
+where
+    symbol = 'GENR'
