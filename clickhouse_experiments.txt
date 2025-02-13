@@ -12,15 +12,33 @@
 
 ---------------------------
 
-
+-- массивы
+SELECT
+	user_id,
+	groupArray(time) as ts_array,
+	groupArray(tuple(time, amount)) as ta_array,
+	-- массив кортежей дата-сумма
+	groupUniqArray(toDate(time)) as dt_array,
+	-- даты, когда покупатель у нас покупал
+FROM
+	my_table
+GROUP BY
+	user_id
 
 ---------------------------
 
-
+-- семплирование
+SELECT
+    5 * uniqExact(profile_id) AS total_users,
+    5 * count() AS total_events
+FROM
+	raw_events
+SAMPLE 1 / 5  -- SAMPLE 1/N OFFSET M/N
 
 ---------------------------
 
 GROUP BY profile_country WITH TOTALS  -- выведет еще и строку Итого
+GROUP BY year, month, day WITH ROLLUP
 
 ---------------------------
 
