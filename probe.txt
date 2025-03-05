@@ -8,6 +8,42 @@ _______________
 
 _______________
 
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+-- кумулятивная сумма продаж за один час
+SELECT
+    sale_time,
+    SUM(money) OVER (
+        ORDER BY sale_time
+        RANGE BETWEEN INTERVAL '1' HOUR PRECEDING AND CURRENT ROW
+    ) AS rolling_sum_last_hour
+FROM
+    final_project_check
+
+_______________
+
 SELECT
     country_code,
     status,
