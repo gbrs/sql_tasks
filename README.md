@@ -1,6 +1,6 @@
-# sql_ex
+# sql_tasks
 
-Мои решения заданий по SQL с:  
+Мои решения заданий по SQL с разных сайтов:  
 - [x] [karpov.courses: Симулятор SQL](https://lab.karpov.courses/learning/152/)  
 - [ ] [sql-ex](https://www.sql-ex.ru) (если форум прочитан, то стоит +)  
 - [x] [learndb](https://learndb.ru/courses)  
