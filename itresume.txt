@@ -1,20 +1,13 @@
 https://itresume.ru/problems?tags=SQL&page=1&complexity=2
 
-[Тестовое Альфа-банк] Покупки телефонов в Туле по месяцам
+[Тестовое OZON] Количество клиентов, купивших товар в определенную дату
 SELECT
-  TRIM(TO_CHAR(created_at, 'month')) as month,
-  COUNT(DISTINCT p.user_id) people
+  COUNT(user_id) cnt_users
 FROM
-  Purchases p
-  INNER JOIN SKUS s ON (p.sku_id = s.id)
-  INNER JOIN Customer c ON (c.ID_CUSTOMER = p.user_id)
+  ozon.purchases
 WHERE
-  c.TOWN = 'Tula'
-  AND s.category = 2
-GROUP BY
-  month
-ORDER BY
-  people DESC
+  sku_id = 2
+  AND created_at = '2023-10-01'
 
 
 [Тестовое OZON] Количество людей из Москвы, купивших телефоны в сентябре и октябре
@@ -33,6 +26,23 @@ GROUP BY
   month
 ORDER BY
   cnt_people DESC
+
+
+[Тестовое Альфа-банк] Покупки телефонов в Туле по месяцам
+SELECT
+  TRIM(TO_CHAR(created_at, 'month')) as month,
+  COUNT(DISTINCT p.user_id) people
+FROM
+  Purchases p
+  INNER JOIN SKUS s ON (p.sku_id = s.id)
+  INNER JOIN Customer c ON (c.ID_CUSTOMER = p.user_id)
+WHERE
+  c.TOWN = 'Tula'
+  AND s.category = 2
+GROUP BY
+  month
+ORDER BY
+  people DESC
 
 
 [Тестовое Альфа-банк] Покупки товара после 10 октября
