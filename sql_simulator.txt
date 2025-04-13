@@ -3329,7 +3329,125 @@ with
             splited_orders so
             LEFT JOIN products p ON so.product_id = p.product_id
         GROUP BY date
-)
+    )
+
+SELECT
+    date,
+    revenue,
+    new_users_revenue,
+    round(100 * new_users_revenue / revenue, 2) new_users_revenue_share,
+    round(100 * (revenue - new_users_revenue) / revenue, 2) old_users_revenue_share
+FROM
+    order_sums
+ORDER BY
+    date
+
+
+2.5-2
+-- наворотил побольше джойнов, избавился от IN, но скорость только хуже стала: 550 vs 400ms
+with
+    users_first_date as (
+        SELECT DISTINCT
+            user_id,
+            min(time)::date as min_date,
+            1 as first
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    user_purchases as(
+        SELECT
+            ua.user_id,
+            creation_time::date date,
+            price,
+            COALESCE(first, 0) as first
+        FROM
+            orders ord
+            CROSS JOIN unnest (product_ids) as product_id
+            LEFT JOIN user_actions ua using(order_id)
+            LEFT JOIN products using(product_id)
+            LEFT JOIN users_first_date ufd ON ua.user_id = ufd.user_id and ord.creation_time::date = ufd.min_date
+        WHERE
+            not exists (SELECT *
+                        FROM   user_actions ua2
+                        WHERE  action = 'cancel_order'
+                                and ord.order_id = ua2.order_id)
+    ),
+
+    order_sums as (
+        SELECT
+            date,
+            sum(price) revenue,
+            sum(price) filter(WHERE first = 1) new_users_revenue
+        FROM
+            user_purchases
+        GROUP BY date
+    )
+
+SELECT
+    date,
+    revenue,
+    new_users_revenue,
+    round(100 * new_users_revenue / revenue, 2) new_users_revenue_share,
+    round(100 * (revenue - new_users_revenue) / revenue, 2) old_users_revenue_share
+FROM
+    order_sums
+ORDER BY
+    date
+
+
+2.5-3
+-- сопоставимо с первым или чуть хуже
+with
+    users_first_date as (
+        SELECT DISTINCT
+            user_id,
+            min(time)::date as date,
+            1 as first
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    splited_orders as(
+        SELECT
+            user_id,
+            creation_time::date as date,
+            unnest (product_ids) product_id
+        FROM
+            orders
+            LEFT JOIN user_actions using(order_id)
+        WHERE
+            not exists (SELECT *
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+    ),
+
+    user_purchases as(
+        SELECT
+            user_id,
+            date,
+            price,
+            COALESCE(first, 0) as first
+        FROM
+            splited_orders so
+            LEFT JOIN products using(product_id)
+            LEFT JOIN users_first_date ufd USING (user_id, date) --ON so.user_id = ufd.user_id and ord.creation_time::date = ufd.min_date
+    ),
+
+    order_sums as (
+        SELECT
+            date,
+            sum(price) revenue,
+            sum(price) filter(WHERE first = 1) new_users_revenue
+        FROM
+            user_purchases
+        GROUP BY date
+    )
 
 SELECT
     date,
@@ -3401,6 +3519,57 @@ SELECT
     sum(share_in_revenue) share_in_revenue
 FROM
     product_sums_with_others
+GROUP BY
+    product_name
+ORDER BY
+    revenue desc
+
+
+2.6-2
+-- лучше предыдущего: 180 vs 380ms
+-- не стоит избегать повторения одних и тех же формул в одном запросе?
+WITH
+    splited_orders as (
+        SELECT
+            unnest (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            not exists (SELECT *
+                        FROM user_actions
+                        WHERE  action = 'cancel_order'
+                                and orders.order_id = user_actions.order_id)
+        ),
+
+    product_sums AS (
+        SELECT
+            name,
+            sum(price) revenue
+        FROM
+            splited_orders
+            JOIN products USING(product_id)
+        GROUP BY
+            name
+    ),
+
+    product_sums_and_shares as (
+        SELECT
+            CASE
+                WHEN round(100.0 * revenue / sum(revenue) OVER(), 2) < 0.5 THEN 'ДРУГОЕ'
+                ELSE name
+                END as product_name,
+            revenue,
+            round(100.0 * revenue / sum(revenue) OVER(), 2) share_in_revenue
+        FROM
+            product_sums
+    )
+
+SELECT
+    product_name,
+    sum(revenue) revenue,
+    sum(share_in_revenue) share_in_revenue
+FROM
+    product_sums_and_shares
 GROUP BY
     product_name
 ORDER BY
