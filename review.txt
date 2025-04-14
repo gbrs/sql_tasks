@@ -1,3 +1,52 @@
+
+2.3
+SELECT
+    date,
+    round(sum(revenue) OVER (ORDER BY date)::decimal / sum(new_users) OVER (ORDER BY date), 2) as running_arpu,
+    round(sum(revenue) OVER (ORDER BY date)::decimal / sum(new_paying_users) OVER (ORDER BY date), 2) as running_arppu,
+    round(sum(revenue) OVER (ORDER BY date)::decimal / sum(orders) OVER (ORDER BY date), 2) as running_aov
+FROM
+    -- revenue and orders
+    (SELECT
+        creation_time::date as date,
+        count(distinct order_id) as orders,
+        sum(price) as revenue
+    FROM
+        (SELECT
+            order_id,
+            creation_time,
+            unnest(product_ids) as product_id
+        FROM   orders
+        WHERE  order_id not in (SELECT order_id FROM user_actions WHERE  action = 'cancel_order')) t1
+    LEFT JOIN products using(product_id)
+    GROUP BY date) t2
+    -- new_users
+    LEFT JOIN
+        (SELECT
+            date,
+            count(user_id) as new_users
+        FROM
+            (SELECT
+                user_id,
+                min(time::date) as date
+            FROM   user_actions
+            GROUP BY user_id) t5
+        GROUP BY date) t6 using (date)
+    -- new_paying_users
+    LEFT JOIN
+        (SELECT
+            date,
+            count(user_id) as new_paying_users
+        FROM
+            (SELECT
+                user_id,
+                min(time::date) as date
+            FROM   user_actions
+            WHERE  order_id not in (SELECT order_id FROM user_actions WHERE action = 'cancel_order')
+            GROUP BY user_id) t7
+        GROUP BY date) t8 using (date)
+
+
 2.1.3
 -- вроде, у вас дважды посчитается человек, который заказал 24-го, а получил заказ 25-го (и больше 25-го не заказывал)
 Добрый день! Подскажите, пожалуйста, модуль 2 урок 1 задание 3 - почему неверно считается Paying_users?

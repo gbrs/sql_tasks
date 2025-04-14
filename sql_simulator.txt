@@ -3221,6 +3221,97 @@ FROM
     INNER JOIN order_counter USING (date)
 
 
+2.3-2
+-- not_canceled_orders сделал сразу таблицей, а не списком, который два раза джойнил
+-- лучше первого варианта: 550 vs 1800ms.
+-- Но это хуже варианта на сайте ~400ms. Тупо подзапросы и IN.
+-- Не понимаю почему так. CTE ломают оптимизатор?
+WITH
+    not_canceled_orders AS (
+        SELECT
+            order_id,
+            user_id,
+            time
+        FROM
+            user_actions ua1
+        WHERE
+            NOT EXISTS (SELECT order_id FROM user_actions ua2 WHERE ua2.action = 'cancel_order' and ua1.order_id = ua2.order_id)
+    ),
+
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+            INNER JOIN not_canceled_orders USING (order_id)
+    ),
+
+    order_sums_counter AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue,
+            COUNT(DISTINCT order_id) order_count
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    users_first_order_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            not_canceled_orders
+        GROUP BY
+            user_id
+    ),
+
+    paying_user_count AS (
+        SELECT
+            date,
+            COUNT(user_id) paying_users
+        FROM
+            users_first_order_date
+        GROUP BY
+            date
+    ),
+
+    users_first_date AS (
+        SELECT
+            user_id,
+            MIN(time)::DATE AS date
+        FROM
+            user_actions
+        GROUP BY
+            user_id
+    ),
+
+    active_user_count AS (
+        SELECT
+            date,
+            COUNT(user_id) active_users
+        FROM
+            users_first_date
+        GROUP BY
+            date
+    )
+
+
+SELECT
+    date,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(active_users) OVER(ORDER BY date), 2) running_arpu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(paying_users) OVER(ORDER BY date), 2) running_arppu,
+    ROUND(SUM(revenue) OVER(ORDER BY date) / SUM(order_count) OVER(ORDER BY date), 2) running_aov
+FROM
+    order_sums_counter
+    INNER JOIN paying_user_count USING (date)
+    INNER JOIN active_user_count USING (date)
+
+
 2.4
 /*
 Фильтрация времени до 8-го числа включительно.
