@@ -1,0 +1,91 @@
+2024 Unique Users Per Client Per Month
+SELECT
+    client_id,
+    EXTRACT(month FROM time_id) AS month,
+    COUNT(DISTINCT user_id) users_num
+FROM
+    fact_events
+GROUP BY
+    client_id,
+    month
+
+
+2056 Number of Shipments Per Month
+select
+    TO_CHAR(shipment_date, 'YYYY-MM') year_month,
+    COUNT(DISTINCT (shipment_id, sub_id)) AS count
+from
+    amazon_shipment
+group by
+    year_month
+
+
+2119 Most Lucrative Products
+select
+    product_id,
+    sum(cost_in_dollars * units_sold) revenue
+from
+    online_orders
+where
+    date_sold >= '2022-01-01'
+    and date_sold < '2022-07-01'
+group by
+    product_id
+order by
+    revenue desc
+limit
+    5
+
+
+9622 Number Of Bathrooms And Bedrooms
+select
+    city,
+    property_type,
+    avg(bathrooms) n_bathrooms_avg,
+    avg(bedrooms) n_bedrooms_avg
+from
+    airbnb_search_details
+group by
+    city,
+    property_type
+
+
+9757
+-- не проверена: платная
+select
+    genre,
+    sum(total) sales
+from
+    global_weekly_charts_2013_2014
+group by
+    genre
+order by
+    sales desc
+
+
+10128 Abigail Breslin Nominations
+select
+    count(*)
+from
+    oscar_nominees
+where
+    nominee = 'Abigail Breslin'
+
+
+10166 Reviews of Hotel Arena
+select
+    hotel_name,
+    reviewer_score,
+    count(reviewer_score)
+from
+    hotel_reviews
+where
+    hotel_name = 'Hotel Arena'
+group by
+    hotel_name,
+    reviewer_score
+
+
+
+
+
