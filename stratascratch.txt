@@ -50,6 +50,63 @@ group by
     property_type
 
 
+9653
+select
+    event_name,
+    count(event_name) event_count
+from
+    playbook_events
+where
+    device = 'macbook pro'
+group by
+    event_name
+order by
+    event_count desc
+
+
+9663
+select
+    company,
+    continent
+from
+    forbes_global_2010_2014
+where
+    sector = 'Financials'
+    and profits = (
+        select
+            max(profits)
+        from
+            forbes_global_2010_2014
+        where
+            sector = 'Financials'
+        )
+
+
+9688
+select
+    activity_date,
+    pe_description
+from
+    los_angeles_restaurant_health_inspections
+where
+    facility_name = 'STREET CHURROS'
+    and score < 95
+
+
+9728
+select
+   extract(year from inspection_date) inspection_year,
+   count(violation_id)
+from
+    sf_restaurant_health_violations
+where
+    business_name = 'Roxanne Cafe'
+group by
+    inspection_year
+order by
+    inspection_year
+
+
 9757
 -- не проверена: платная
 select
@@ -61,6 +118,126 @@ group by
     genre
 order by
     sales desc
+
+
+9845
+select
+    count(*) n_admins
+from
+    worker
+where
+    department = 'Admin'
+    and joining_date >= '2014-04-01'
+
+
+9847
+select
+    department,
+    count(*) num_workers
+from
+    worker
+where
+    joining_date >= '2014-04-01'
+group by
+    department
+order by
+    num_workers desc
+
+
+9871
+select
+    distinct
+    hotel_name,
+    total_number_of_reviews
+from
+    hotel_reviews
+order by
+    2 desc
+
+
+9891
+select
+    first_name,
+    last_name,
+    city,
+    order_details
+from
+    customers cst
+    left join orders ord ON cst.id = ord.cust_id
+order by
+    first_name,
+    order_details
+
+
+9913
+select
+    first_name,
+    order_date,
+    order_details,
+    total_order_cost
+from
+    customers cst
+    left join orders ord ON cst.id = ord.cust_id
+where
+    first_name in ('Jill', 'Eva')
+order by
+    cst.id
+
+
+9917
+select
+    department,
+    first_name,
+    salary,
+    avg(salary) over (partition by department) avg_salary
+from
+    employee
+
+
+9924
+select
+    distinct home_library_code
+from
+    library_usage
+where
+    circulation_active_year = 2016
+    and provided_email_address is not TRUE
+    and notice_preference_definition = 'email'
+
+
+9972
+select
+    employeename,
+    basepay
+from
+    sf_public_salaries
+where
+    lower(jobtitle) like '%captain%'
+    and lower(jobtitle) like '%police%'
+
+
+9992
+select
+    artist,
+    count(*) n_occurences
+from
+    spotify_worldwide_daily_song_ranking
+group by
+    artist
+order by
+    n_occurences desc
+
+
+10003
+select
+    index,
+    start_date,
+    end_date,
+    yearly_salary
+from
+    lyft_drivers
+where
+    yearly_salary not between 30000 and 70000
 
 
 10128 Abigail Breslin Nominations
