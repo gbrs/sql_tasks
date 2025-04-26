@@ -1,3 +1,5 @@
+tasks from https://platform.stratascratch.com
+
 2024 Unique Users Per Client Per Month
 SELECT
     client_id,
@@ -240,6 +242,34 @@ where
     yearly_salary not between 30000 and 70000
 
 
+10061
+select
+    fe.location,
+    AVG(fhs.popularity) avg_popularity
+from
+    facebook_hack_survey  fhs
+    INNER JOIN facebook_employees fe ON (fhs.employee_id = fe.id)
+group by
+    fe.location
+
+
+10087
+with posters as (
+    select
+        distinct post_id
+    from
+        facebook_reactions
+    where
+        reaction = 'heart'
+)
+
+select
+    *
+from
+    posters
+    INNER JOIN facebook_posts USING (post_id)
+
+
 10128 Abigail Breslin Nominations
 select
     count(*)
@@ -261,6 +291,69 @@ where
 group by
     hotel_name,
     reviewer_score
+
+
+10176
+select
+    bike_number,
+    max(end_time) last_used
+from
+    dc_bikeshare_q1_2012
+group by
+    bike_number
+order by
+    last_used desc
+
+
+10299
+select
+    id,
+    first_name,
+    last_name,
+    department_id,
+    max(salary) salary
+from
+    ms_employee_salary
+group by
+    id,
+    first_name,
+    last_name,
+    department_id
+order by
+    id
+
+
+10308
+-- для PostgreSQL
+select
+    max(salary) filter(where dbd.department = 'marketing')
+        - max(salary) filter(where dbd.department = 'engineering') salary_difference
+from
+    db_employee dbe
+    inner join db_dept dbd ON (dbe.department_id = dbd.id)
+
+
+10308
+-- для MySQL
+select
+    max(if(dbd.department = 'marketing', salary, 0))
+        - max(if(dbd.department = 'engineering', salary, 0)) salary_difference
+from
+    db_employee dbe
+    inner join db_dept dbd ON (dbe.department_id = dbd.id)
+
+
+10353
+select
+    worker_title best_paid_title
+from
+    worker w
+    inner join title t ON (w.worker_id = t.worker_ref_id)
+where
+    w.salary = (select max(salary) from worker)
+
+
+
 
 
 
