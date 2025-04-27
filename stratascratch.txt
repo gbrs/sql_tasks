@@ -1,5 +1,14 @@
 tasks from https://platform.stratascratch.com
 
+2005 Share of Active Users
+select
+    100.0
+        * count(user_id) filter (where country = 'USA' and status = 'open')
+        / count(user_id) us_active_share
+from
+    fb_active_users
+
+
 2024 Unique Users Per Client Per Month
 SELECT
     client_id,
