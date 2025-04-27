@@ -3122,6 +3122,76 @@ FROM
     INNER JOIN counter USING (date)
 
 
+2.2-2
+-- not_canceled_orders сделал сразу таблицей, а не списком, который два раза джойнил
+-- чуть лучше первого варианта.Но не лучше варианта на сайте: тупо подзапросы и IN.
+-- Не понимаю почему так. CTE ломают оптимизатор (индексы)?
+WITH
+    not_canceled_orders AS (
+        SELECT
+            order_id
+        FROM
+            user_actions ua1
+        WHERE
+            NOT EXISTS (SELECT order_id FROM user_actions ua2 WHERE ua2.action = 'cancel_order' and ua1.order_id = ua2.order_id)
+    ),
+
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+            INNER JOIN not_canceled_orders USING (order_id)
+    ),
+
+    order_sums AS (
+        SELECT
+            creation_time::DATE date,
+            SUM(price) revenue
+        FROM
+            splited_orders so
+            LEFT JOIN products p ON so.product_id = p.product_id
+        GROUP BY
+            date
+    ),
+
+    counter_not_canceled AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT user_id) paying_users,
+            COUNT(DISTINCT order_id) order_count
+        FROM
+            user_actions
+            INNER JOIN not_canceled_orders USING (order_id)
+        GROUP BY
+            date
+    ),
+
+    counter_total AS (
+        SELECT
+            time::DATE date,
+            COUNT(DISTINCT user_id) active_users
+        FROM
+            user_actions
+        GROUP BY
+            date
+    )
+
+SELECT
+    date,
+    ROUND(revenue / active_users, 2) arpu,
+    ROUND(revenue / paying_users, 2) arppu,
+    ROUND(revenue / order_count, 2) aov
+FROM
+    order_sums
+    INNER JOIN counter_not_canceled USING (date)
+    INNER JOIN counter_total USING (date)
+ORDER BY
+    date
+
+
 2.3
 /*
 В подсказках  спрятано:
@@ -4181,6 +4251,7 @@ ORDER BY
 
 2mm.2-2
 -- быстрее первого варианта 74 vs 171 ms
+-- без дублирования списков участников кампаний и джойн этого списка
 WITH
     campaign_users as(
         SELECT
@@ -4497,6 +4568,7 @@ ORDER BY
 
 2mm.3-3
 -- хуже варианта 2: 80 vs 60ms. Почему? В 2mm.2 было наоборот
+-- без дублирования списков участников кампаний и джойн этого списка
 WITH
     campaign_users as(
         SELECT
@@ -4733,6 +4805,7 @@ HAVING
 
 2mm.5-2
 -- быстрее первого варианта: 40 vs 200ms
+-- без дублирования списков участников кампаний и джойн этого списка
 WITH
     campaign_users as(
         SELECT
@@ -5153,6 +5226,7 @@ ORDER BY
 
 2mm.6-3
 -- выигрывает у первых двух: 80 vs 350 vs 800ms
+-- без дублирования списков участников кампаний и джойн этого списка
 WITH
     campaign_users as(
         SELECT
