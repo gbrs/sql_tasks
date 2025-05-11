@@ -16,19 +16,45 @@ _______________
 
 _______________
 
-
+-- кубик по континентам и субконтинента
+SELECT
+  geoNetwork.continent,
+  geoNetwork.subContinent,
+  COUNT(*) cnt
+FROM
+  `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`
+GROUP BY
+  CUBE (1, 2)
+ORDER BY
+  cnt desc
+LIMIT
+  10
 
 _______________
 
-
-
-_______________
-
-
+SELECT
+    timestamp_seconds(1800000000)
+-- будет 2027-01-15 08:00:00 UTC
 
 _______________
 
+-- создание времени из int64: 1501591568
+SELECT
+    timestamp_seconds(visitStartTime)
+FROM
+    `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`
+LIMIT
+  10
 
+_______________
+
+-- создание даты из стринга типа "20170801"
+SELECT
+    DATE(LEFT(date, 4) || '-' || SUBSTRING(date, 5, 2) || '-' || RIGHT(date, 2))
+FROM
+    `bigquery-public-data.google_analytics_sample.ga_sessions_20170801`
+LIMIT
+  10
 
 _______________
 
