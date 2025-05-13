@@ -227,6 +227,20 @@ where
     and lower(jobtitle) like '%police%'
 
 
+9991 Top Ranked Songs
+select
+    trackname,
+    count(*) times_top1
+from
+    spotify_worldwide_daily_song_ranking
+where
+    position = 1
+group by
+    trackname
+order by
+    times_top1 desc
+
+
 9992
 select
     artist,
