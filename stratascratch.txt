@@ -31,6 +31,39 @@ group by
     year_month
 
 
+2099 Election Results
+with
+    vote_weights as (
+        select
+            voter,
+            case when count(candidate) > 0 then 1.0 / count(candidate) else 0.0 end as vote_weight
+        from
+            voting_results
+        group by
+            voter
+    ) ,
+
+    votes as (
+        select
+            candidate,
+            sum(vote_weight) vote
+        from
+            voting_results
+            inner join vote_weights using (voter)
+        group by
+            candidate
+    )
+
+select
+    candidate
+from
+    votes
+where
+    vote = (select max(vote) from votes)
+limit
+    10
+
+
 2119 Most Lucrative Products
 select
     product_id,
