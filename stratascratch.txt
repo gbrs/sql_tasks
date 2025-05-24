@@ -64,6 +64,22 @@ limit
     10
 
 
+2102
+select
+    video_id,
+    COUNT(
+        DISTINCT
+            COALESCE(user_firstname, '')
+            || COALESCE(user_lastname, '')
+    ) num_unique_users
+from
+    user_flags
+where
+   flag_id is not null
+group by
+    video_id
+
+
 2119 Most Lucrative Products
 select
     product_id,
