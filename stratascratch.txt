@@ -80,6 +80,30 @@ group by
     video_id
 
 
+2104
+with flagged_video as (
+    select
+        coalesce(user_firstname || ' ', '') || coalesce(user_lastname, '') username,
+        count(distinct video_id) flagged_video_count
+    from
+        user_flags
+    where
+        not(
+            user_firstname is null
+            and user_lastname is null
+        )
+    group by
+        username
+)
+
+select
+    username
+from
+    flagged_video
+where
+    flagged_video_count = (select max(flagged_video_count) from flagged_video)
+
+
 2119 Most Lucrative Products
 select
     product_id,
