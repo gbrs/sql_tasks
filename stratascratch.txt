@@ -121,6 +121,15 @@ limit
     5
 
 
+9610
+SELECT
+    id
+FROM
+    sat_scores
+WHERE
+    sat_writing = (SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY sat_writing) FROM sat_scores)
+
+
 9622 Number Of Bathrooms And Bedrooms
 select
     city,
