@@ -143,6 +143,22 @@ group by
     property_type
 
 
+9650 Top 10 Songs 2010
+select
+    distinct
+    year_rank,
+    group_name,
+    song_name
+from
+    billboard_top_100_year_end
+where
+    year = 2010
+order by
+    year_rank
+limit
+    10
+
+
 9653
 select
     event_name,
