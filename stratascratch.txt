@@ -444,6 +444,30 @@ order by
     id
 
 
+10304 Risky Projects
+with expense_table as (
+    select
+        'Project' || ep.project_id::text title,
+        max(budget) budget,
+        ceil(sum(emp.salary / 365.0 * (pr.end_date - pr.start_date))) prorated_employee_expense
+    from
+        linkedin_projects pr
+        inner join linkedin_emp_projects ep on pr.id = ep.project_id
+        inner join linkedin_employees emp on ep.emp_id = emp.id
+    group by
+        project_id
+)
+
+select
+    *
+from
+    expense_table
+where
+    budget < prorated_employee_expense
+order by
+    title
+
+
 10308
 -- для PostgreSQL
 select
