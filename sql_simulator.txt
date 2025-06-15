@@ -700,7 +700,7 @@ ORDER BY order_size
 
 
 6.12
--- EXPLAIN: seqscan, сортировка и только потом агрегация
+-- EXPLAIN: seqscan, сортировка для последующей агрегации, агрегация, сортировка top-N heapsort, лимит
 SELECT user_id, COUNT(order_id) created_orders
 FROM user_actions
 WHERE action = 'create_order' AND DATE_PART('month', time) = 8
@@ -710,7 +710,8 @@ LIMIT 5
 
 
 6.13
--- EXPLAIN: seqscan, сортировка и только потом агрегация
+-- EXPLAIN: seqscan, сортировка, агрегация с фильтрацией.
+-- Больше сортировки нет, т.к. первая сортировка сохранится?
 SELECT courier_id
 FROM courier_actions
 WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
@@ -747,7 +748,6 @@ ORDER BY
 6.16
 /*
 "Ваши расчеты могут отличаться от ожидаемого результата, так как время не стоит на месте".
-EXPLAIN: seqscan, сортировка и только потом агрегация
 */
 SELECT
   CASE
@@ -768,7 +768,7 @@ ORDER BY
 
 
 6.17
--- EXPAIN: Seq Scan, сортировка, потом группировка, а потом опять сортировка
+-- EXPAIN: Seq Scan, сортировка под группировку, группировка, а потом опять сортировка
 SELECT
   CASE
     WHEN EXTRACT(DOW from creation_time) IN (0, 6) THEN 'weekend'
@@ -784,7 +784,7 @@ ORDER BY
 
 
 6.18
--- EXPAIN: Seq Scan, сортировка, потом агрегация (HAVING исполняется внутри агрегации, видимо)
+-- EXPAIN: Seq Scan, сортировка под группировку, потом агрегация (HAVING исполняется внутри агрегации, видимо)
 SELECT
   user_id,
   COUNT(*) FILTER (WHERE action = 'create_order') orders_count ,
@@ -861,7 +861,6 @@ FROM
 
 
 7.3
--- в EXPLAIN не увидел фильтрацию. Два Seq Scan, агрегация, сортировка
 SELECT product_id, name, price
 FROM products
 WHERE price != (SELECT MIN(price) FROM products)
@@ -869,7 +868,6 @@ ORDER BY price DESC
 
 
 7.4
--- в EXPLAIN не увидел фильтрацию. Два Seq Scan, агрегация, сортировка
 SELECT product_id, name, price
 FROM products
 WHERE price >= (SELECT AVG(price) FROM products) + 20
@@ -1027,6 +1025,7 @@ ORDER BY
 
 
 7.10
+-- join будет быстрее?
 SELECT COUNT(*) orders_count
 FROM (
     SELECT order_id
