@@ -272,13 +272,13 @@ order by
   price desc
 
 
-4.2
+4.2old
 select product_id, name
 from products
 where name LIKE '%чай%'
 
 
-4.2new
+4.2
 select user_id
 from users
 where sex = 'female'
@@ -286,20 +286,20 @@ order by user_id
 limit 1000
 
 
-4.3
+4.3old
 select product_id, name
 from products
 where name LIKE 'с%' and name not LIKE '% %'
 
 
-4.3new
+4.3
 select user_id, order_id, time
 from user_actions
 where time > '2022-09-06' and action='create_order'
 order by order_id
 
 
-4.4
+4.4old
 select
   product_id,
   name,
@@ -314,7 +314,7 @@ where
   and price > 60
 
 
-4.4new
+4.4
 select
   product_id,
   name,
@@ -328,7 +328,7 @@ order by
   product_id
 
 
-4.5
+4.5old
 select
   user_id,
   order_id,
@@ -343,7 +343,7 @@ order by
   time desc
 
 
-4.5new
+4.5
 select
   product_id,
   name
@@ -636,6 +636,7 @@ ORDER BY 1
 
 
 6.4
+-- в EXPLAIN видно: сперва секскан, потом сортировка и только после агрегация
 SELECT DATE_TRUNC('month', time) as month, action, COUNT(*) orders_count
 FROM user_actions
 GROUP BY 1, 2
@@ -681,13 +682,6 @@ GROUP BY age, sex
 ORDER BY age, sex
 
 
-*6.5
-SELECT DATE_TRUNC('month', time) AS month, action, COUNT(*) orders_count
-FROM user_actions
-GROUP BY month, action
-ORDER BY month, action
-
-
 6.10
 SELECT array_length(product_ids, 1) order_size, COUNT(*) orders_count
 FROM orders
@@ -706,6 +700,7 @@ ORDER BY order_size
 
 
 6.12
+-- EXPLAIN: seqscan, сортировка для последующей агрегации, агрегация, сортировка top-N heapsort, лимит
 SELECT user_id, COUNT(order_id) created_orders
 FROM user_actions
 WHERE action = 'create_order' AND DATE_PART('month', time) = 8
@@ -715,6 +710,8 @@ LIMIT 5
 
 
 6.13
+-- EXPLAIN: seqscan, сортировка, агрегация с фильтрацией.
+-- Больше сортировки нет, т.к. первая сортировка сохранится?
 SELECT courier_id
 FROM courier_actions
 WHERE action = 'deliver_order' AND DATE_PART('month', time) = 9
@@ -750,8 +747,7 @@ ORDER BY
 
 6.16
 /*
-"Ваши расчеты могут отличаться от ожидаемого результата,
-так как время не стоит на месте".
+"Ваши расчеты могут отличаться от ожидаемого результата, так как время не стоит на месте".
 */
 SELECT
   CASE
@@ -772,6 +768,7 @@ ORDER BY
 
 
 6.17
+-- EXPAIN: Seq Scan, сортировка под группировку, группировка, а потом опять сортировка
 SELECT
   CASE
     WHEN EXTRACT(DOW from creation_time) IN (0, 6) THEN 'weekend'
@@ -787,6 +784,7 @@ ORDER BY
 
 
 6.18
+-- EXPAIN: Seq Scan, сортировка под группировку, потом агрегация (HAVING исполняется внутри агрегации, видимо)
 SELECT
   user_id,
   COUNT(*) FILTER (WHERE action = 'create_order') orders_count ,
@@ -1027,6 +1025,7 @@ ORDER BY
 
 
 7.10
+-- join будет быстрее?
 SELECT COUNT(*) orders_count
 FROM (
     SELECT order_id
