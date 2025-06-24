@@ -488,6 +488,30 @@ from
     inner join db_dept dbd ON (dbe.department_id = dbd.id)
 
 
+10318 New Products
+with temp as (
+    select
+        company_name,
+        year,
+        COUNT(*) quantity
+    from
+        car_launches
+    group by
+        company_name,
+        year
+)
+
+select
+    company_name,
+    t2.quantity - t1.quantity net_products
+from
+    temp t1
+    inner join temp t2 using(company_name)
+where
+    t1.year = 2019
+    and t2.year = 2020
+
+
 10353
 select
     worker_title best_paid_title
