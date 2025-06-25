@@ -426,6 +426,41 @@ order by
     last_used desc
 
 
+10285 Acceptance Rate By Date
+with
+    cnt as (
+        select
+            min(date) "date",
+            count(*)
+        from
+            fb_friend_requests
+        group by
+            user_id_sender,
+            user_id_receiver
+    ),
+
+    cnt_1_2 as (
+        select
+            date,
+            count(*) filter (where count = 1) not_accepted,
+            count(*) filter (where count = 2) accepted
+        from
+            cnt
+        group by
+            date
+    )
+
+select
+    date,
+    1.0 * accepted / (accepted + not_accepted) percentage_acceptance
+from
+    cnt_1_2
+where
+    accepted > 0
+order by
+    date
+
+
 10299
 select
     id,
@@ -510,6 +545,75 @@ from
 where
     t1.year = 2019
     and t2.year = 2020
+
+
+10322 Finding User Purchases
+with
+    user_dates as (
+        select
+            distinct user_id,
+            created_at::date date
+        from
+            amazon_transactions
+    ),
+
+    periods as (
+        select
+            user_id,
+            date - min(date) over (partition by user_id) days
+        from
+            user_dates
+
+    )
+
+select
+    user_id
+from
+    periods
+where
+    days between 1 and 7
+group by
+    user_id
+
+
+10352 Users By Average Session Time
+with
+    input_times as (
+        select
+            user_id,
+            max(timestamp)::date "day",
+            max(timestamp) input_time
+        from
+            facebook_web_log
+        where
+            action = 'page_load'
+        group by
+            user_id, timestamp::date
+    ),
+
+    input_output_times as (
+        select
+            it.user_id,
+            it.day,
+            it.input_time,
+            fwl.timestamp output_time
+        from
+            input_times it
+            inner join facebook_web_log fwl
+                on it.user_id = fwl.user_id
+                and it.day = fwl.timestamp::date
+                and it.input_time <= fwl.timestamp
+        where
+            fwl.action = 'page_exit'
+    )
+
+select
+    user_id,
+    AVG(output_time - input_time)
+from
+    input_output_times
+group by
+    user_id
 
 
 10353
