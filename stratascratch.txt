@@ -479,6 +479,24 @@ order by
     id
 
 
+10300 Premium vs Freemium
+select
+    date,
+    sum(downloads) filter(where paying_customer = 'no') non_paying,
+    sum(downloads) filter(where paying_customer = 'yes') paying
+from
+    ms_download_facts
+    inner join ms_user_dimension using(user_id)
+    inner join ms_acc_dimension using(acc_id)
+group by
+    date
+having
+    sum(downloads) filter(where paying_customer = 'no')
+        > sum(downloads) filter(where paying_customer = 'yes')
+order by
+    date
+
+
 10304 Risky Projects
 with expense_table as (
     select
