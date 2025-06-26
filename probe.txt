@@ -12,7 +12,44 @@ _______________
 
 _______________
 
+-- условие в on и where
+WITH
+    splited_orders AS(
+        SELECT
+            order_id,
+            creation_time,
+            UNNEST (product_ids) product_id
+        FROM
+            orders
+        WHERE
+            NOT EXISTS (SELECT *
+                        FROM user_actions
+                        WHERE action = 'cancel_order'
+                                AND orders.order_id = user_actions.order_id)
+    )
 
+
+SELECT
+    *
+FROM
+    splited_orders so
+    LEFT JOIN products p
+        ON so.product_id = p.product_id
+            and price < 100
+WHERE
+    order_id < 8
+
+EXCEPT
+
+SELECT
+    *
+FROM
+    splited_orders so
+    LEFT JOIN products p
+        ON so.product_id = p.product_id
+WHERE
+    order_id < 8
+    and price < 100
 
 _______________
 
