@@ -4,10 +4,65 @@
 
 _______________
 
+with
+    Customers as (
+      SELECT 1 as CustomerID, 'a' as chr UNION
+      SELECT 1, 'b' UNION
+      SELECT 2, 'a' UNION
+      SELECT 2, 'b' UNION
+      SELECT 3, 'a' UNION
+      SELECT 3, 'b'  UNION
+      SELECT 4, 'a'
+    ),
 
+    Orders as (
+      SELECT 1 as CustomerID, '20090515' as OrderDate UNION
+      SELECT 1, '20090516' UNION
+      SELECT 2, '20090515' UNION
+      SELECT 2, '20090516' UNION
+      SELECT 3, '20090515' UNION
+      SELECT 3, '20090516'
+    )
+
+
+SELECT *
+FROM Customers AS CUS
+LEFT JOIN Orders AS ORD
+ON CUS.CustomerID = ORD.CustomerID
+AND OrderDate >'20090515'
+-- AND chr > 'a'
+-- WHERE OrderDate >'20090515'
 
 _______________
 
+with
+    a as (
+      SELECT 1 as id, 'a' as chr UNION
+      SELECT 1, 'b' UNION
+      SELECT 2, 'a' UNION
+      SELECT 2, 'b' UNION
+      SELECT 3, 'a' UNION
+      SELECT 3, 'b'
+    ),
+
+    b as (
+      SELECT 1 as id, 1 as value UNION
+      SELECT 1, 11 UNION
+      SELECT 2, 1 UNION
+      SELECT 2, 11 UNION
+      SELECT 3, 1 UNION
+      SELECT 3, 11
+    )
+
+
+SELECT
+    *
+FROM
+    a
+    LEFT JOIN b ON a.id = b.id and b.value > 10
+    -- LEFT JOIN b ON a.id = b.id and a.chr > 'a'
+-- WHERE
+--    b.value > 10
 
 
 _______________
