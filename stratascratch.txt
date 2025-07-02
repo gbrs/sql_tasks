@@ -1,6 +1,7 @@
 tasks from https://platform.stratascratch.com
+* перед номером = посмотрел решения других
 
-2005 Share of Active Users
+*2005 Share of Active Users
 select
     100.0
         * count(user_id) filter (where country = 'USA' and status = 'open')
@@ -592,6 +593,26 @@ where
     days between 1 and 7
 group by
     user_id
+
+
+*10351 Activity Rank
+-- оконка выполняется после групбай, а значит группбай не мешает ей - не надо ее в отдельном запросе считать
+-- сперва строки сгруппируют, а потом на этих сгруппированных строках посчитается оконка.
+with email_counter as (
+    select
+        from_user,
+        count(*) total_emails
+    from
+        google_gmail_emails
+    group by
+        from_user
+)
+
+select
+    *,
+    row_number() over (order by total_emails desc, from_user)
+from
+    email_counter
 
 
 10352 Users By Average Session Time
