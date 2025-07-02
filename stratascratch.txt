@@ -10,7 +10,7 @@ from
     fb_active_users
 
 
-2024 Unique Users Per Client Per Month
+*2024 Unique Users Per Client Per Month
 SELECT
     client_id,
     EXTRACT(month FROM time_id) AS month,
@@ -22,7 +22,7 @@ GROUP BY
     month
 
 
-2056 Number of Shipments Per Month
+*2056 Number of Shipments Per Month
 select
     TO_CHAR(shipment_date, 'YYYY-MM') year_month,
     COUNT(DISTINCT (shipment_id, sub_id)) AS count
@@ -32,7 +32,7 @@ group by
     year_month
 
 
-2099 Election Results
+*2099 Election Results
 with
     vote_weights as (
         select
