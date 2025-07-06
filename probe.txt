@@ -1,6 +1,51 @@
 
 
 
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+
+
+_______________
+
+SELECT
+    product_name,
+    category_name,
+    SUM(quantity * (price - cost)) profit
+FROM
+    orders o
+    INNER JOIN prices AS prc USING(product_id)
+    INNER JOIN costs cst USING(product_id)
+    INNER JOIN products prd USING(product_id)
+    INNER JOIN categories ctg USING(category_id)
+GROUP BY
+    product_name,
+    category_name
+ORDER BY
+    profit DESC
 
 _______________
 
