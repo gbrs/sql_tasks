@@ -27,7 +27,25 @@ _______________
 
 _______________
 
-
+-- частоты встречающихся интервалов между покупками
+WITH time_series AS (
+    SELECT
+        user_id,
+        order_date - LAG(order_date) OVER (PARTITION BY user_id ORDER BY order_date) AS sale_interval
+    FROM
+        sales
+)
+SELECT
+    sale_interval, 
+    COUNT(*) cnt
+FROM
+    time_series
+WHERE
+    sale_interval IS NOT NULL
+GROUP BY
+    sale_interval
+ORDER BY
+    sale_interval
 
 _______________
 
