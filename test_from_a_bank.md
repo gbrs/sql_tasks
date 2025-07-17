@@ -19,4 +19,22 @@ https://t.me/c/2035525785/155
 продолжаем разбиение по 5000 до верхней границы, группа «от 20000 и более» не является верным ответом). 
 Формат вывода: корзина (в любой понятной форме), кол-во заказов. Циклы не используем.   
 
-
+## Задача 1
+Выделить поставщиков (Vendors), которые в 2021 году не продали ни одного зонта (зонты ищем в prod_desc).
+Корнер кейсы. Если вендор не производит зонтов 
+```sql
+SELECT
+    vend_name
+FROM
+    Vendors vnd 
+    LEFT JOIN Products prd USING (vend_id)
+    LEFT JOIN OrderItems USING (prod_id)
+    LEFT JOIN Orders USING (order_num)
+WHERE
+    prod_name LIKE 'Зонт%'
+    AND EXTRACT(YEAR from order_date) = 2021
+GROUP BY
+    vend_name
+HAVING
+    SUM(quantity) IS NULL
+```
