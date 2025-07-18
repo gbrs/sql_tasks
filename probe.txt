@@ -15,11 +15,16 @@ _______________
 
 _______________
 
-
+-- поиск вхождения без учета регистра
+select * from products where lower(name) like '%газ%'
 
 _______________
 
-
+-- пользователи, совершившие более 12 действий
+select user_id, count(*)
+from user_actions
+group by user_id
+having count(*) > 12
 
 _______________
 

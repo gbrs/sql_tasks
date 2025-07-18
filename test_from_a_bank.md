@@ -21,20 +21,60 @@ https://t.me/c/2035525785/155
 
 ## Задача 1
 Выделить поставщиков (Vendors), которые в 2021 году не продали ни одного зонта (зонты ищем в prod_desc).
-Корнер кейсы. Если вендор не производит зонтов 
+Корнер кейсы. Если вендор не производит зонтов он должен появиться в списке? 
 ```sql
 SELECT
     vend_name
 FROM
     Vendors vnd 
-    LEFT JOIN Products prd USING (vend_id)
-    LEFT JOIN OrderItems USING (prod_id)
-    LEFT JOIN Orders USING (order_num)
-WHERE
-    prod_name LIKE 'Зонт%'
-    AND EXTRACT(YEAR from order_date) = 2021
+    LEFT JOIN Products prd ON
+        vnd.vend_id = prd.vend_id
+        AND LOWER(prod_name) LIKE '%зонт%'
+    LEFT JOIN OrderItems oit USING (prod_id)
+    LEFT JOIN Orders ord ON
+        oit.order_num = ord.order_num
+        AND EXTRACT(YEAR from order_date) = 2021    
 GROUP BY
     vend_name
 HAVING
     SUM(quantity) IS NULL
 ```
+
+
+## 2 
+Вычислить одним запросом среднюю стоимость заказа в разбивке по годам (из order_date) для американских 
+(vend_country = ‘USA’) и неамериканких поставщиков.  
+А если в заказе и американские и неамериканские товары? Разделю такой заказ на два заказа.   
+```sql
+WITH order_sum AS (
+    SELECT
+        order_num, 
+        EXTRACT(YEAR FROM order_date) AS year, 
+        CASE
+            WHEN vend_country = 'USA' THEN 'USA' 
+            ELSE 'not USA'
+        END USA_or_not, 
+        SUM(quantity * item_price) total_sum
+    FROM
+        OrderItems oit 
+        LEFT JOIN Orders ord USING (order_num)
+        LEFT JOIN Products prd USING (prod_id)
+        LEFT JOIN Vendors vnd USING (vendor_id)
+    GROUP BY
+        order_num, 
+        USA_or_not, 
+        year
+)
+    
+SELECT
+    year, 
+    AVG(total_sum) FILTER (WHERE USA_or_not = 'USA') avg_sum_USA, 
+    AVG(total_sum) FILTER (WHERE USA_or_not = 'not USA') avg_sum_not_USA, 
+FROM
+    order_sum
+GROUP BY 
+    year
+```
+
+
+
