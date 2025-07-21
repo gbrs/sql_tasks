@@ -15,15 +15,66 @@ _______________
 
 _______________
 
-
-
-_______________
-
-
+-- поиск вхождения без учета регистра
+select * from products where lower(name) like '%газ%'
 
 _______________
 
+-- пользователи, совершившие более 12 действий
+select user_id, count(*)
+from user_actions
+group by user_id
+having count(*) > 12
 
+_______________
+
+/*
+изучение лефтджойна
+все возможные варианты в левой и правой таблице: есть  пара для соединения * проходит ли строка фильтрацию
+id_L	key_L	data_L	param_L
+1	    pair	a0	    0
+2	    pair	a1	    1
+3	    pair	a2	    1
+4	    aloneL	b	    1
+5	    filteredL	c	0
+
+id_R	key_R	data_R	param_R
+1	    pair	d0	    0
+2	    pair	d1	    1
+3	    pair	d2	    1
+4	    aloneR	e	    1
+5	    filteredR	f	0
+*/
+
+WITH
+    L AS (
+        SELECT 1 AS id_L, 'pair' AS key_L, 'a0' AS data_L, 0 AS param_L UNION
+        SELECT 2, 'pair', 'a1', 1 UNION
+        SELECT 3, 'pair', 'a2', 1 UNION
+        SELECT 4, 'aloneL', 'b', 1 UNION
+        SELECT 5, 'filteredL', 'c', 0
+    ),
+
+    R AS (
+        SELECT 1 AS id_R, 'pair' AS key_R, 'd0' AS data_R, 0 AS param_R UNION
+        SELECT 2, 'pair', 'd1', 1 UNION
+        SELECT 3, 'pair', 'd2', 1 UNION
+        SELECT 4, 'aloneR', 'e', 1 UNION
+        SELECT 5, 'filteredR', 'f', 0
+    )
+
+SELECT
+    *
+FROM
+    L
+    LEFT JOIN R
+        ON
+            key_L = key_R
+            AND param_L = 1
+            AND param_R = 1
+ORDER BY
+    data_L,
+    data_R
 
 _______________
 
