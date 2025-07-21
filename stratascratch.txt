@@ -160,6 +160,24 @@ limit
     10
 
 
+9632 Host Popularity Rental Prices
+select
+    case
+        when number_of_reviews = 0 then 'New'
+        when number_of_reviews < 6 then 'Rising'
+        when number_of_reviews < 16 then 'Trending Up'
+        when number_of_reviews < 41 then 'Popular'
+        else 'Hot'
+    end host_popularity,
+    min(price) min_price,
+    avg(price) avg_price,
+    max(price) max_price
+from
+    airbnb_host_searches
+group by
+    host_popularity
+
+
 9653
 select
     event_name,
@@ -230,6 +248,53 @@ order by
     sales desc
 
 
+9781 Processed Ticket Rate By Type
+select
+    type,
+    round(avg(processed::int), 2)
+from
+    facebook_complaints
+group by
+    type
+
+
+9782
+select
+    cust_id,
+    sum(total_order_cost) total_revenue
+from
+    orders
+where
+    order_date between '2019-03-01' and '2019-03-31'
+group by
+    cust_id
+order by
+    total_revenue desc
+
+
+9817 Count Occurrences Of Words In Drafts
+select
+    string_to_table(
+        replace(
+            replace(
+                lower(contents),
+                ',',
+                ''
+            ),
+            '.',
+            ''
+        ),
+        ' '
+    ) word,
+    count(*) occurrences
+from
+    google_file_store
+group by
+    word
+order by
+    occurrences desc
+
+
 9845
 select
     count(*) n_admins
@@ -263,6 +328,18 @@ from
     hotel_reviews
 order by
     2 desc
+
+
+9881 Titanic Survivors and Non-Survivors
+select
+    survived,
+    count(*) filter (where pclass = 1) first_class,
+    count(*) filter (where pclass = 2) second_class,
+    count(*) filter (where pclass = 3) third_class
+from
+    titanic
+group by
+    survived
 
 
 9891
