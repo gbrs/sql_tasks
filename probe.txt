@@ -11,7 +11,11 @@ _______________
 
 _______________
 
-
+-- в DBeaver в пределах открытого окошка запроса работает, пока не закроют это окно
+CREATE TEMP TABLE tmp AS
+SELECT *
+FROM sales_orders_2_delete.public.orders o
+WHERE order_id < 10;
 
 _______________
 
