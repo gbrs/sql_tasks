@@ -3,11 +3,44 @@
 
 _______________
 
-
+-- заказы заказчиков, у которых первый же заказ был большим
+WITH
+    invoices AS (
+        SELECT
+            date,
+            invoice,
+            client,
+            round(sum(quantity * price)) revenue,
+            row_number() OVER(PARTITION BY client ORDER BY date) order_serial_number
+        FROM
+            orders
+        GROUP BY
+            date,
+            invoice,
+            client
+    ),
+    big_from_first AS (
+        SELECT
+            invoice
+        FROM
+            invoices
+        WHERE
+            order_serial_number = 1
+            AND revenue > 1
+        ORDER BY
+            date
+    )
+SELECT
+    *
+FROM
+    orders ord
+WHERE
+    EXISTS (SELECT invoice FROM big_from_first bff WHERE ord.invoice = bff.invoice)
 
 _______________
 
-SELECT  -- hash + salt
+-- hash + salt
+SELECT
     123::varchar || 'наш крутой эксперимент 250802',
     md5(123::varchar || 'наш крутой эксперимент 250802'),
     md5(123::varchar || ' ' || 'наш крутой эксперимент 250802'),
