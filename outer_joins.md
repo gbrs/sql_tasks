@@ -24,21 +24,21 @@
 
 Для примера возьмем 2 таблицы:
 
-id_L | 	key_L         |	data_L |	param_L  
-- |----------------| - | -   
-1 | 	    pair      |	a0 |	    0 
-2 | 	    pair      |	a1 |	    1
-3 | 	    pair      |	a2 |	    1
-4 | 	    aloneL    |	b |	    1
-5 | 	    filteredL |	c |	0
+| id_L | 	key_L         |	data_L |	param_L  |
+| - |----------------| - | - |  
+| 1 | 	    pair      |	a0 |	    0 |
+| 2 | 	    pair      |	a1 |	    1 |
+| 3 | 	    pair      |	a2 |	    1 |
+| 4 | 	    aloneL    |	b |	    1 |
+| 5 | 	    filteredL |	c |	0 |
 
-id_R |	key_R |	data_R |	param_R
-- |----------------| - | -   
-1 |	    pair |	d0 |	    0
-2 |	    pair |	d1 |	    1
-3 |	    pair |	d2 |	    1
-4 |	    aloneR |	e |	    1
-5 |	    filteredR |	f |	0
+| id_R |	key_R |	data_R |	param_R |
+| - |----------------| - | -    |
+| 1 |	    pair |	d0 |	    0 |
+| 2 |	    pair |	d1 |	    1 |
+| 3 |	    pair |	d2 |	    1 |
+| 4 |	    aloneR |	e |	    1 |
+| 5 |	    filteredR |	f |	0 |
 
 ```sql
 WITH 
